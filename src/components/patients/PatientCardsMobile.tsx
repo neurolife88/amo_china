@@ -49,7 +49,25 @@ export function PatientCardsMobile({
 
   const startEditing = (dealId: number, field: string, currentValue: string) => {
     setEditingField({ dealId, field });
-    setEditValue(currentValue || '');
+    
+    // Special handling for datetime fields
+    if (field === 'departure_datetime' && currentValue) {
+      try {
+        // Convert from ISO string to datetime-local format
+        const date = new Date(currentValue);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const datetimeLocalValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+        setEditValue(datetimeLocalValue);
+      } catch (error) {
+        setEditValue(currentValue || '');
+      }
+    } else {
+      setEditValue(currentValue || '');
+    }
   };
 
   const saveEdit = async (dealId: number, field: string) => {
@@ -61,9 +79,20 @@ export function PatientCardsMobile({
       } else if (field === 'departure_city') {
         updates.departure_city = editValue;
       } else if (field === 'departure_datetime') {
-        updates.departure_datetime = editValue;
+        if (editValue) {
+          try {
+            const date = new Date(editValue);
+            updates.departure_datetime = date.toISOString();
+          } catch (error) {
+            updates.departure_datetime = editValue;
+          }
+        } else {
+          updates.departure_datetime = editValue;
+        }
       } else if (field === 'departure_flight_number') {
         updates.departure_flight_number = editValue;
+      } else if (field === 'departure_transport_type') {
+        updates.departure_transport_type = editValue;
       }
 
       console.log('Saving mobile edit for dealId:', dealId, 'field:', field, 'value:', editValue);
@@ -98,7 +127,8 @@ export function PatientCardsMobile({
       'apartment_number', // Включаю обратно
       'departure_city', 
       'departure_datetime', 
-      'departure_flight_number'
+      'departure_flight_number',
+      'departure_transport_type'
     ].includes(field);
   };
 
@@ -111,12 +141,51 @@ export function PatientCardsMobile({
         <div>
           <span className="text-muted-foreground">{label}:</span>
           <div className="flex items-center gap-2 mt-1">
-            <Input
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="h-8 text-sm"
-              autoFocus
-            />
+            {field === 'departure_city' ? (
+              <Select
+                value={editValue}
+                onValueChange={(value) => setEditValue(value)}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Выберите город" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((city) => (
+                    <SelectItem key={city.id} value={city.city_name}>
+                      {city.city_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : field === 'departure_transport_type' ? (
+              <Select
+                value={editValue}
+                onValueChange={(value) => setEditValue(value)}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Выберите транспорт" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Самолет">Самолет</SelectItem>
+                  <SelectItem value="Поезд">Поезд</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : field === 'departure_datetime' ? (
+              <Input
+                type="datetime-local"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="h-8 text-sm"
+                autoFocus
+              />
+            ) : (
+              <Input
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="h-8 text-sm"
+                autoFocus
+              />
+            )}
             <Button
               size="sm"
               variant="ghost"

@@ -55,7 +55,25 @@ export function PatientTableDesktop({
 
   const startEditing = (dealId: number, field: string, currentValue: string) => {
     setEditingField({ dealId, field });
-    setEditValue(currentValue || '');
+    
+    // Special handling for datetime fields
+    if (field === 'departure_datetime' && currentValue) {
+      try {
+        // Convert from ISO string to datetime-local format
+        const date = new Date(currentValue);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const datetimeLocalValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+        setEditValue(datetimeLocalValue);
+      } catch (error) {
+        setEditValue(currentValue || '');
+      }
+    } else {
+      setEditValue(currentValue || '');
+    }
   };
 
   const saveEdit = async (dealId: number, field: string) => {
@@ -67,12 +85,23 @@ export function PatientTableDesktop({
         'apartment_number': 'apartment_number',
         'departure_city': 'departure_city',
         'departure_datetime': 'departure_datetime',
-        'departure_flight_number': 'departure_flight_number'
+        'departure_flight_number': 'departure_flight_number',
+        'departure_transport_type': 'departure_transport_type'
       };
       
       const propertyName = fieldMapping[field];
       if (propertyName) {
-        (updates as any)[propertyName] = editValue;
+        if (field === 'departure_datetime' && editValue) {
+          // Convert datetime-local format to ISO string
+          try {
+            const date = new Date(editValue);
+            (updates as any)[propertyName] = date.toISOString();
+          } catch (error) {
+            (updates as any)[propertyName] = editValue;
+          }
+        } else {
+          (updates as any)[propertyName] = editValue;
+        }
       }
 
       console.log('Saving edit for dealId:', dealId, 'field:', field, 'value:', editValue);
@@ -107,7 +136,8 @@ export function PatientTableDesktop({
       'apartment_number', // Включаю обратно
       'departure_city', 
       'departure_datetime',
-      'departure_flight_number'
+      'departure_flight_number',
+      'departure_transport_type'
     ];
     
     return (userRole === 'coordinator' || userRole === 'super_admin') && editableFields.includes(field);
@@ -118,6 +148,124 @@ export function PatientTableDesktop({
     const rawValue = value || '';
 
     if (isEditing(patient.deal_id, field)) {
+      // Special handling for different field types
+      if (field === 'departure_city') {
+        return (
+          <TableCell>
+            <div className="flex items-center gap-2">
+              <Select
+                value={editValue}
+                onValueChange={(value) => setEditValue(value)}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Выберите город" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((city) => (
+                    <SelectItem key={city.id} value={city.city_name}>
+                      {city.city_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => saveEdit(patient.deal_id, field)}
+                className="h-6 w-6 p-0"
+              >
+                <Check className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={cancelEdit}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </TableCell>
+        );
+      }
+      
+      if (field === 'departure_transport_type') {
+        return (
+          <TableCell>
+            <div className="flex items-center gap-2">
+              <Select
+                value={editValue}
+                onValueChange={(value) => setEditValue(value)}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Выберите транспорт" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Самолет">Самолет</SelectItem>
+                  <SelectItem value="Поезд">Поезд</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => saveEdit(patient.deal_id, field)}
+                className="h-6 w-6 p-0"
+              >
+                <Check className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={cancelEdit}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </TableCell>
+        );
+      }
+      
+      if (field === 'departure_datetime') {
+        return (
+          <TableCell>
+            <div className="flex items-center gap-2">
+              <Input
+                type="datetime-local"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    saveEdit(patient.deal_id, field);
+                  } else if (e.key === 'Escape') {
+                    cancelEdit();
+                  }
+                }}
+                className="h-8 text-sm"
+                autoFocus
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => saveEdit(patient.deal_id, field)}
+                className="h-6 w-6 p-0"
+              >
+                <Check className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={cancelEdit}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </TableCell>
+        );
+      }
+
+      // Default input for other fields
       return (
         <TableCell>
           <div className="flex items-center gap-2">
@@ -172,6 +320,15 @@ export function PatientTableDesktop({
   };
 
   const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    try {
+      return format(parseISO(dateString), 'dd.MM.yyyy HH:mm', { locale: ru });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatDateTimeForEdit = (dateString: string | null) => {
     if (!dateString) return '-';
     try {
       return format(parseISO(dateString), 'dd.MM.yyyy HH:mm', { locale: ru });
@@ -349,6 +506,7 @@ export function PatientTableDesktop({
                 <TableHead>Статус сделки</TableHead>
                 <TableHead>Дата и время прибытия</TableHead>
                 <TableHead>Дата и время убытия</TableHead>
+                <TableHead>Транспорт</TableHead>
                 <TableHead>Город убытия</TableHead>
                 <TableHead>Номер рейса</TableHead>
               </>
@@ -449,7 +607,8 @@ export function PatientTableDesktop({
                   <TableCell>{patient.clinic_name || '-'}</TableCell>
                   <TableCell>{patient.status_name || '-'}</TableCell>
                   <TableCell>{formatDate(patient.arrival_datetime)}</TableCell>
-                  {renderEditableCell(patient, 'departure_datetime', patient.departure_datetime)}
+                  {renderEditableCell(patient, 'departure_datetime', patient.departure_datetime, formatDateTimeForEdit)}
+                  {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type)}
                   {renderEditableCell(patient, 'departure_city', patient.departure_city)}
                   {renderEditableCell(patient, 'departure_flight_number', patient.departure_flight_number)}
                 </>
