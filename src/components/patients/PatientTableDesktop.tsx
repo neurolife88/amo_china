@@ -86,7 +86,8 @@ export function PatientTableDesktop({
         'departure_city': 'departure_city',
         'departure_datetime': 'departure_datetime',
         'departure_flight_number': 'departure_flight_number',
-        'departure_transport_type': 'departure_transport_type'
+        'departure_transport_type': 'departure_transport_type',
+        'patient_chinese_name': 'patient_chinese_name'
       };
       
       const propertyName = fieldMapping[field];
@@ -131,7 +132,7 @@ export function PatientTableDesktop({
     return editingField?.dealId === dealId && editingField?.field === field;
   };
 
-  const canEdit = (field: string) => {
+  const canEdit = (field: string, fieldGroup?: string) => {
     const editableFields = [
       'apartment_number', // Включаю обратно
       'departure_city', 
@@ -140,15 +141,58 @@ export function PatientTableDesktop({
       'departure_transport_type'
     ];
     
+    // Китайское имя можно редактировать только в закладке "На лечении"
+    if (field === 'patient_chinese_name') {
+      return (userRole === 'coordinator' || userRole === 'super_admin') && fieldGroup === 'treatment';
+    }
+    
     return (userRole === 'coordinator' || userRole === 'super_admin') && editableFields.includes(field);
   };
 
-  const renderEditableCell = (patient: PatientData, field: string, value: string | null, formatValue?: (val: string | null) => string) => {
+  const renderEditableCell = (patient: PatientData, field: string, value: string | null, formatValue?: (val: string | null) => string, fieldGroup?: string) => {
     const displayValue = formatValue ? formatValue(value) : (value || '-');
     const rawValue = value || '';
 
     if (isEditing(patient.deal_id, field)) {
       // Special handling for different field types
+      if (field === 'patient_chinese_name') {
+        return (
+          <TableCell className="min-w-[120px]">
+            <div className="flex items-center gap-2">
+              <Input
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    saveEdit(patient.deal_id, field);
+                  } else if (e.key === 'Escape') {
+                    cancelEdit();
+                  }
+                }}
+                className="h-8 text-sm min-w-[100px]"
+                autoFocus
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => saveEdit(patient.deal_id, field)}
+                className="h-6 w-6 p-0"
+              >
+                <Check className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={cancelEdit}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </TableCell>
+        );
+      }
+      
       if (field === 'departure_city') {
         return (
           <TableCell>
@@ -305,13 +349,13 @@ export function PatientTableDesktop({
 
     return (
       <TableCell
-        className={canEdit(field) ? 'cursor-pointer hover:bg-muted/50 group' : ''}
-        onClick={() => canEdit(field) && startEditing(patient.deal_id, field, rawValue)}
-        title={canEdit(field) ? 'Клик для редактирования' : ''}
+        className={canEdit(field, fieldGroup) ? 'cursor-pointer hover:bg-muted/50 group' : ''}
+        onClick={() => canEdit(field, fieldGroup) && startEditing(patient.deal_id, field, rawValue)}
+        title={canEdit(field, fieldGroup) ? 'Клик для редактирования' : ''}
       >
         <div className="flex items-center gap-2">
           <span>{displayValue}</span>
-          {canEdit(field) && (
+          {canEdit(field, fieldGroup) && (
             <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           )}
         </div>
@@ -462,6 +506,7 @@ export function PatientTableDesktop({
           <TableRow>
             {/* Пациент всегда отображается */}
             <TableHead>Пациент</TableHead>
+            <TableHead className="min-w-[120px]">中文名字</TableHead>
             
             {/* Basic fields */}
             {visibleFieldGroups.includes('basic') && (
@@ -478,6 +523,7 @@ export function PatientTableDesktop({
                 <TableHead>Истекает</TableHead>
                 <TableHead>Паспорт номер</TableHead>
                 <TableHead>Город</TableHead>
+                <TableHead>Примечание</TableHead>
               </>
             )}
             
@@ -495,6 +541,7 @@ export function PatientTableDesktop({
                 <TableHead>Терминал</TableHead>
                 <TableHead>Количество пассажиров</TableHead>
                 <TableHead>Квартира</TableHead>
+                <TableHead>Примечание</TableHead>
               </>
             )}
             
@@ -509,6 +556,7 @@ export function PatientTableDesktop({
                 <TableHead>Транспорт</TableHead>
                 <TableHead>Город убытия</TableHead>
                 <TableHead>Номер рейса</TableHead>
+                <TableHead>Примечание</TableHead>
               </>
             )}
              
@@ -522,6 +570,7 @@ export function PatientTableDesktop({
                 <TableHead>Дата прибытия</TableHead>
                 <TableHead>Дата убытия</TableHead>
                 <TableHead>Виза истекает</TableHead>
+                <TableHead>Примечание</TableHead>
                 <TableHead>Действия</TableHead>
               </>
             )}
@@ -562,6 +611,14 @@ export function PatientTableDesktop({
               <TableCell className="font-medium">
                 {patient.patient_full_name || '-'}
               </TableCell>
+              {/* Китайское имя - редактируемое только в treatment */}
+              {visibleFieldGroups.includes('treatment') ? (
+                renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'treatment')
+              ) : (
+                <TableCell className="min-w-[120px]">
+                  {patient.patient_chinese_name || '-'}
+                </TableCell>
+              )}
               
               {/* Basic fields */}
               {visibleFieldGroups.includes('basic') && (
@@ -580,6 +637,7 @@ export function PatientTableDesktop({
                   </TableCell>
                   {renderEditableCell(patient, 'patient_passport', patient.patient_passport)}
                   <TableCell>{patient.patient_city || '-'}</TableCell>
+                  <TableCell>{patient.notes || '-'}</TableCell>
                 </>
               )}
               
@@ -597,6 +655,7 @@ export function PatientTableDesktop({
                   <TableCell>{patient.arrival_terminal || '-'}</TableCell>
                   <TableCell>{patient.passengers_count || '-'}</TableCell>
                   {renderEditableCell(patient, 'apartment_number', patient.apartment_number)}
+                  <TableCell>{patient.notes || '-'}</TableCell>
                 </>
               )}
               
@@ -611,6 +670,7 @@ export function PatientTableDesktop({
                   {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type)}
                   {renderEditableCell(patient, 'departure_city', patient.departure_city)}
                   {renderEditableCell(patient, 'departure_flight_number', patient.departure_flight_number)}
+                  <TableCell>{patient.notes || '-'}</TableCell>
                 </>
               )}
                 
@@ -626,6 +686,7 @@ export function PatientTableDesktop({
                   <TableCell>
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
                   </TableCell>
+                  <TableCell>{patient.notes || '-'}</TableCell>
                   <TableCell>
                     <Button 
                       variant="outline" 

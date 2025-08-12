@@ -36,9 +36,10 @@ export function PatientsTable() {
   // Load patients when filters change
   useEffect(() => {
     if (profile) {
-      loadPatients(filters);
+      const currentFieldGroup = visibleFieldGroups[0] || 'basic';
+      loadPatients({ ...filters, fieldGroup: currentFieldGroup });
     }
-  }, [filters, profile, loadPatients]);
+  }, [filters, profile, loadPatients, visibleFieldGroups]);
 
   const handleFilterChange = (newFilters: PatientFilters) => {
     setFilters(newFilters);
@@ -46,6 +47,10 @@ export function PatientsTable() {
 
   const handleFieldGroupToggle = (group: FieldGroup) => {
     setVisibleFieldGroups([group]);
+    // Перезагружаем данные с новым fieldGroup
+    if (profile) {
+      loadPatients({ ...filters, fieldGroup: group });
+    }
   };
 
   // Автоматическая сортировка и фильтрация пациентов в зависимости от выбранной группы полей
@@ -107,6 +112,15 @@ export function PatientsTable() {
         break;
         
       case 'basic':
+        // Только определенные статусы для закладки "ВСЕ"
+        filteredPatients = patients.filter(p => 
+          p.status_name === 'Билеты куплены' || 
+          p.status_name === 'на лечении' || 
+          p.status_name === 'обратные билеты с лечения' ||
+          p.status_name === 'квартира заказана'
+        );
+        break;
+        
       case 'visa':
       case 'personal':
         // Показываем всех (без фильтрации)
@@ -163,7 +177,12 @@ export function PatientsTable() {
             { 
               key: 'basic', 
               label: 'ВСЕ', 
-              count: patients.length,
+              count: patients.filter(p => 
+                p.status_name === 'Билеты куплены' || 
+                p.status_name === 'на лечении' || 
+                p.status_name === 'обратные билеты с лечения' ||
+                p.status_name === 'квартира заказана'
+              ).length,
               enabled: true 
             },
             { 
@@ -178,12 +197,37 @@ export function PatientsTable() {
               count: patients.filter(p => p.status_name === 'на лечении' || p.status_name === 'обратные билеты с лечения').length,
               enabled: true 
             },
-            { 
-              key: 'departure', 
-              label: 'Обратные билеты', 
-              count: patients.filter(p => p.status_name === 'обратные билеты с лечения').length,
-              enabled: true 
-            },
+                         { 
+               key: 'departure', 
+               label: 'Обратные билеты', 
+               count: patients.filter(p => {
+                 // Проверяем статус
+                 const hasCorrectStatus = p.status_name === 'на лечении' || p.status_name === 'обратные билеты с лечения';
+                 
+                 // Если статус неправильный или дата убытия не заполнена - исключаем
+                 if (!hasCorrectStatus || !p.departure_datetime) return false;
+                 
+                 // Проверяем диапазон даты убытия
+                 try {
+                   const departureDate = new Date(p.departure_datetime);
+                   const now = new Date();
+                   
+                   // Сегодня минус 2 дня
+                   const twoDaysAgo = new Date(now);
+                   twoDaysAgo.setDate(now.getDate() - 2);
+                   
+                   // Сегодня плюс 1 год
+                   const oneYearFromNow = new Date(now);
+                   oneYearFromNow.setFullYear(now.getFullYear() + 1);
+                   
+                   return departureDate >= twoDaysAgo && departureDate <= oneYearFromNow;
+                 } catch (error) {
+                   // Если дата невалидная - исключаем
+                   return false;
+                 }
+               }).length,
+               enabled: true 
+             },
             { 
               key: 'visa', 
               label: 'Виза', 

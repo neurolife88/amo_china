@@ -14,6 +14,7 @@ export interface PatientData {
   deal_country: string | null;
   visa_city: string | null;
   deal_created_at: string | null;
+  notes: string | null;  // ← NEW: Notes field
   
   // Clinic data
   clinic_full_name: string | null;
@@ -24,6 +25,7 @@ export interface PatientData {
   patient_first_name: string | null;
   patient_last_name: string | null;
   patient_preferred_name: string | null;
+  patient_chinese_name: string | null;  // ← NEW: Chinese name
   patient_phone: string | null;
   patient_email: string | null;
   patient_birthday: string | null;
@@ -67,10 +69,11 @@ export interface PatientFilters {
   search?: string;
   departure_airport_code?: string;
   arrival_city?: string;
+  fieldGroup?: FieldGroup;
 }
 
 export type FieldGroup = 'basic' | 'arrival' | 'departure' | 'treatment' | 'visa' | 'personal';
-export type EditableField = 'apartment_number' | 'departure_city' | 'departure_datetime' | 'departure_flight_number';
+export type EditableField = 'apartment_number' | 'departure_city' | 'departure_datetime' | 'departure_flight_number' | 'departure_transport_type' | 'patient_chinese_name';
 
 export interface SortConfig {
   field: keyof PatientData;

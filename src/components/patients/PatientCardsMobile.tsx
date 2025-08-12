@@ -93,6 +93,8 @@ export function PatientCardsMobile({
         updates.departure_flight_number = editValue;
       } else if (field === 'departure_transport_type') {
         updates.departure_transport_type = editValue;
+      } else if (field === 'patient_chinese_name') {
+        updates.patient_chinese_name = editValue;
       }
 
       console.log('Saving mobile edit for dealId:', dealId, 'field:', field, 'value:', editValue);
@@ -122,17 +124,24 @@ export function PatientCardsMobile({
     return editingField?.dealId === dealId && editingField?.field === field;
   };
 
-  const canEdit = (field: string) => {
-    return userRole === 'coordinator' && [
+  const canEdit = (field: string, fieldGroup?: string) => {
+    const editableFields = [
       'apartment_number', // Включаю обратно
       'departure_city', 
       'departure_datetime', 
       'departure_flight_number',
       'departure_transport_type'
-    ].includes(field);
+    ];
+    
+    // Китайское имя можно редактировать только в закладке "На лечении"
+    if (field === 'patient_chinese_name') {
+      return (userRole === 'coordinator' || userRole === 'super_admin') && fieldGroup === 'treatment';
+    }
+    
+    return (userRole === 'coordinator' || userRole === 'super_admin') && editableFields.includes(field);
   };
 
-  const renderEditableField = (patient: PatientData, field: string, value: string | null, label: string, formatValue?: (val: string | null) => string) => {
+  const renderEditableField = (patient: PatientData, field: string, value: string | null, label: string, formatValue?: (val: string | null) => string, fieldGroup?: string) => {
     const displayValue = formatValue ? formatValue(value) : (value || '-');
     const rawValue = value || '';
 
@@ -212,7 +221,7 @@ export function PatientCardsMobile({
         <span className="text-muted-foreground">{label}:</span>
         <div className="flex items-center justify-between group">
           <span>{displayValue}</span>
-          {canEdit(field) && (
+          {canEdit(field, fieldGroup) && (
             <Button
               size="sm"
               variant="ghost"
@@ -337,6 +346,11 @@ export function PatientCardsMobile({
                 <User className="h-4 w-4" />
                 <span>{patient.patient_full_name || 'Без имени'}</span>
               </CardTitle>
+              {patient.patient_chinese_name && (
+                <div className="text-sm text-muted-foreground font-normal">
+                  中文名字: {patient.patient_chinese_name}
+                </div>
+              )}
             </div>
             <div className="text-sm text-muted-foreground">
               {patient.clinic_name || 'Клиника не указана'}
@@ -445,6 +459,7 @@ export function PatientCardsMobile({
                      <div>{formatDate(patient.arrival_datetime)}</div>
                    </div>
                    {renderEditableField(patient, 'apartment_number', patient.apartment_number, 'Квартира')}
+                   {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'treatment')}
                  </div>
                  
                                    {/* Add Return Tickets Button */}
@@ -513,6 +528,22 @@ export function PatientCardsMobile({
                   <div>
                     <span className="text-muted-foreground">Паспорт:</span> {patient.patient_passport || '-'}
                   </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Notes Section - показываем в нужных закладках */}
+            {(visibleFieldGroups.includes('basic') || 
+              visibleFieldGroups.includes('arrival') || 
+              visibleFieldGroups.includes('treatment') || 
+              visibleFieldGroups.includes('departure')) && patient.notes && (
+              <div className="p-2 rounded bg-gray-50 dark:bg-gray-950/20 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-4 w-4 text-gray-600" />
+                  <span className="font-medium text-sm">Примечание</span>
+                </div>
+                <div className="text-sm text-gray-700 dark:text-gray-300">
+                  {patient.notes}
                 </div>
               </div>
             )}

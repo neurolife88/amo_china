@@ -36,7 +36,7 @@ export function usePatients() {
         );
       }
       
-      // Фильтрация по статусу удалена - теперь используется только status_name из AmoCRM
+      // Фильтрация по статусу удалена - теперь используется только клиентская фильтрация
       
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
@@ -98,6 +98,8 @@ export function usePatients() {
         patient_city: row.patient_city,
         patient_passport: row.patient_passport,
         patient_position: row.patient_position,
+        patient_chinese_name: row.patient_chinese_name,
+        notes: row.notes,
         amocrm_contact_id: row.amocrm_contact_id,
         arrival_datetime: row.arrival_datetime,
         arrival_transport_type: row.arrival_transport_type,
@@ -136,7 +138,10 @@ export function usePatients() {
       
       // Разделяем поля по таблицам
       const dealsFields = [
-        'deal_name', 'pipeline_name', 'status_name', 'deal_country', 'visa_city'
+        'deal_name', 'pipeline_name', 'status_name', 'deal_country', 'visa_city', 'notes'
+      ];
+      const contactsFields = [
+        'patient_chinese_name'
       ];
       const ticketsFields = [
         'apartment_number', 'arrival_datetime', 'arrival_city', 'arrival_flight_number', 
@@ -147,12 +152,15 @@ export function usePatients() {
       ];
 
       const dealsUpdates: any = {};
+      const contactsUpdates: any = {};
       const ticketsUpdates: any = {};
       const returnTicketsUpdates: any = {};
 
       Object.keys(updates).forEach(key => {
         if (dealsFields.includes(key)) {
           dealsUpdates[key] = (updates as any)[key];
+        } else if (contactsFields.includes(key)) {
+          contactsUpdates[key] = (updates as any)[key];
         } else if (ticketsFields.includes(key)) {
           ticketsUpdates[key] = (updates as any)[key];
         } else if (returnTicketsFields.includes(key)) {
@@ -170,6 +178,19 @@ export function usePatients() {
         if (dealsError) {
           console.error('Deals update error:', dealsError);
           throw new Error(`Ошибка обновления deals: ${dealsError.message}`);
+        }
+      }
+
+      // Обновляем таблицу contacts если есть изменения
+      if (Object.keys(contactsUpdates).length > 0) {
+        const { error: contactsError } = await supabase
+          .from('contacts')
+          .update(contactsUpdates)
+          .eq('deal_id', dealId);
+
+        if (contactsError) {
+          console.error('Contacts update error:', contactsError);
+          throw new Error(`Ошибка обновления contacts: ${contactsError.message}`);
         }
       }
 
@@ -236,7 +257,7 @@ export function usePatients() {
       }
 
       // Перезагружаем данные
-      await loadPatients({ search: '' });
+      await loadPatients({ search: '', fieldGroup: 'basic' });
       
       console.log('Update successful');
     } catch (error) {
@@ -247,7 +268,7 @@ export function usePatients() {
 
   useEffect(() => {
     if (profile) {
-      loadPatients({ search: '' });
+      loadPatients({ search: '', fieldGroup: 'basic' });
     }
   }, [profile, loadPatients]);
 
