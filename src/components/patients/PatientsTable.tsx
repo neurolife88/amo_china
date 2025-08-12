@@ -76,10 +76,34 @@ export function PatientsTable() {
         break;
         
       case 'departure':
-        // Только "обратные билеты с лечения"
-        filteredPatients = patients.filter(p => 
-          p.status_name === 'обратные билеты с лечения'
-        );
+        // Статус "на лечении" ИЛИ "обратные билеты с лечения" 
+        // И заполнена дата убытия в правильном диапазоне (сегодня-2дня до сегодня+1год)
+        filteredPatients = patients.filter(p => {
+          // Проверяем статус
+          const hasCorrectStatus = p.status_name === 'на лечении' || p.status_name === 'обратные билеты с лечения';
+          
+          // Если статус неправильный или дата убытия не заполнена - исключаем
+          if (!hasCorrectStatus || !p.departure_datetime) return false;
+          
+          // Проверяем диапазон даты убытия
+          try {
+            const departureDate = new Date(p.departure_datetime);
+            const now = new Date();
+            
+            // Сегодня минус 2 дня
+            const twoDaysAgo = new Date(now);
+            twoDaysAgo.setDate(now.getDate() - 2);
+            
+            // Сегодня плюс 1 год
+            const oneYearFromNow = new Date(now);
+            oneYearFromNow.setFullYear(now.getFullYear() + 1);
+            
+            return departureDate >= twoDaysAgo && departureDate <= oneYearFromNow;
+          } catch (error) {
+            // Если дата невалидная - исключаем
+            return false;
+          }
+        });
         break;
         
       case 'basic':
