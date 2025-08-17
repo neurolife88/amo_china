@@ -10,9 +10,9 @@
     "prebuild": "node scripts/update-version.cjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "release:fix": "npm version patch && git push && git push --tags",
-    "release:feature": "npm version minor && git push && git push --tags",
-    "release:breaking": "npm version major && git push && git push --tags",
+    "release:fix": "npm version patch && node scripts/update-version.cjs && git add .env.local && git commit --amend --no-edit && git push && git push --tags",
+    "release:feature": "npm version minor && node scripts/update-version.cjs && git add .env.local && git commit --amend --no-edit && git push && git push --tags",
+    "release:breaking": "npm version major && node scripts/update-version.cjs && git add .env.local && git commit --amend --no-edit && git push && git push --tags",
     "release:info": "echo 'Команды релиза: fix(patch), feature(minor), breaking(major)'"
   },
   "dependencies": {
