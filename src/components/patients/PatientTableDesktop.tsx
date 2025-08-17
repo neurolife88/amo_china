@@ -1,14 +1,7 @@
 
 import { useState } from 'react';
 import { PatientData, FieldGroup } from '@/types/patient';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,6 +13,7 @@ import { Edit2, Check, X, Plane } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCities } from '@/hooks/useCities';
 import ExpandableText from '../ExpandableText';
+import StickyHorizontalScroll from '../StickyHorizontalScroll';
 import { Calendar } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -158,7 +152,7 @@ export function PatientTableDesktop({
       // Special handling for different field types
       if (field === 'patient_chinese_name') {
         return (
-          <TableCell className="min-w-[120px]">
+          <td className="border-2 border-gray-400 px-4 py-2 min-w-[120px]">
             <div className="flex items-center gap-2">
               <Input
                 value={editValue}
@@ -190,13 +184,13 @@ export function PatientTableDesktop({
                 <X className="h-3 w-3" />
               </Button>
             </div>
-          </TableCell>
+          </td>
         );
       }
       
       if (field === 'departure_city') {
         return (
-          <TableCell>
+          <td className="border-2 border-gray-400 px-4 py-2">
             <div className="flex items-center gap-2">
               <Select
                 value={editValue}
@@ -230,13 +224,13 @@ export function PatientTableDesktop({
                 <X className="h-3 w-3" />
               </Button>
             </div>
-          </TableCell>
+          </td>
         );
       }
       
       if (field === 'departure_transport_type') {
         return (
-          <TableCell>
+          <td className="border-2 border-gray-400 px-4 py-2">
             <div className="flex items-center gap-2">
               <Select
                 value={editValue}
@@ -267,13 +261,13 @@ export function PatientTableDesktop({
                 <X className="h-3 w-3" />
               </Button>
             </div>
-          </TableCell>
+          </td>
         );
       }
       
       if (field === 'departure_datetime') {
         return (
-          <TableCell>
+          <td className="border-2 border-gray-400 px-4 py-2">
             <div className="flex items-center gap-2">
               <Input
                 type="datetime-local"
@@ -306,13 +300,13 @@ export function PatientTableDesktop({
                 <X className="h-3 w-3" />
               </Button>
             </div>
-          </TableCell>
+          </td>
         );
       }
 
       // Default input for other fields
       return (
-        <TableCell>
+        <td className="border-2 border-gray-400 px-4 py-2">
           <div className="flex items-center gap-2">
             <Input
               value={editValue}
@@ -344,13 +338,13 @@ export function PatientTableDesktop({
               <X className="h-3 w-3" />
             </Button>
           </div>
-        </TableCell>
+        </td>
       );
     }
 
     return (
-      <TableCell
-        className={canEdit(field, fieldGroup) ? 'cursor-pointer hover:bg-muted/50 group' : ''}
+      <td
+        className={`border-2 border-gray-400 px-4 py-2 ${canEdit(field, fieldGroup) ? 'cursor-pointer hover:bg-muted/50 group' : ''}`}
         onClick={() => canEdit(field, fieldGroup) && startEditing(patient.deal_id, field, rawValue)}
         title={canEdit(field, fieldGroup) ? 'Клик для редактирования' : ''}
       >
@@ -360,7 +354,7 @@ export function PatientTableDesktop({
             <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           )}
         </div>
-      </TableCell>
+      </td>
     );
   };
 
@@ -501,202 +495,214 @@ export function PatientTableDesktop({
   };
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
+    <>
+    <StickyHorizontalScroll>
+      <div className="rounded-md border">
+        <style>{`
+          .force-narrow-cols th:nth-child(1) { width: 49px !important; min-width: 49px !important; max-width: 49px !important; }
+          .force-narrow-cols th:nth-child(2) { width: 38px !important; min-width: 38px !important; max-width: 38px !important; }
+          .force-narrow-cols .treatment-col-1 { width: 25px !important; min-width: 25px !important; max-width: 25px !important; }
+          .force-narrow-cols .treatment-col-2 { width: 14px !important; min-width: 14px !important; max-width: 14px !important; }
+          .force-narrow-cols .treatment-col-3 { width: 32px !important; min-width: 32px !important; max-width: 32px !important; }
+        `}</style>
+        <table 
+          style={{ width: 'max-content', tableLayout: 'fixed' }}
+          className="border-collapse border-2 border-gray-400 force-narrow-cols"
+        >
+        <thead>
+          <tr className="bg-gray-50">
             {/* Пациент всегда отображается */}
-            <TableHead>Пациент</TableHead>
-            <TableHead className="min-w-[120px]">中文名字</TableHead>
+            <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '49px', minWidth: '49px', maxWidth: '49px'}}>Пациент</th>
+            <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '38px', minWidth: '38px', maxWidth: '38px'}}>中文名字</th>
             
             {/* Basic fields */}
             {visibleFieldGroups.includes('basic') && (
               <>
-                <TableHead>Страна</TableHead>
-                <TableHead>Клиника</TableHead>
-                <TableHead>Статус сделки</TableHead>
-                <TableHead>Дата и время прибытия</TableHead>
-                <TableHead>Транспорт</TableHead>
-                <TableHead>Рейс</TableHead>
-                <TableHead>Квартира</TableHead>
-                <TableHead>Тип визы</TableHead>
-                <TableHead>Количество дней в визе</TableHead>
-                <TableHead>Истекает</TableHead>
-                <TableHead>Паспорт номер</TableHead>
-                <TableHead>Город</TableHead>
-                <TableHead>Примечание</TableHead>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Клиника</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Дата и время прибытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Транспорт</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Рейс</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Квартира</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Тип визы</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Количество дней в визе</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Истекает</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Паспорт номер</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Город</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Примечание</th>
               </>
             )}
             
             {/* Arrival fields */}
             {visibleFieldGroups.includes('arrival') && (
               <>
-                <TableHead>Страна</TableHead>
-                <TableHead>Клиника</TableHead>
-                <TableHead>Статус сделки</TableHead>
-                <TableHead>Дата и время прибытия</TableHead>
-                <TableHead>Транспорт</TableHead>
-                <TableHead>Код аэропорта</TableHead>
-                <TableHead>Город прибытия</TableHead>
-                <TableHead>Рейс</TableHead>
-                <TableHead>Терминал</TableHead>
-                <TableHead>Количество пассажиров</TableHead>
-                <TableHead>Квартира</TableHead>
-                <TableHead>Примечание</TableHead>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '75px', minWidth: '75px', maxWidth: '75px'}}>Транспорт</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>Код аэропорта</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Город прибытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Рейс</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '30px', minWidth: '30px', maxWidth: '30px'}}>Т-нал</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>ПАС</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Квартира</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
               </>
             )}
             
             {/* Departure fields */}
             {visibleFieldGroups.includes('departure') && (
               <>
-                <TableHead>Страна</TableHead>
-                <TableHead>Клиника</TableHead>
-                <TableHead>Статус сделки</TableHead>
-                <TableHead>Дата и время прибытия</TableHead>
-                <TableHead>Дата и время убытия</TableHead>
-                <TableHead>Транспорт</TableHead>
-                <TableHead>Город убытия</TableHead>
-                <TableHead>Номер рейса</TableHead>
-                <TableHead>Примечание</TableHead>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время убытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Транспорт</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Город убытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Номер рейса</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
               </>
             )}
              
             {/* Treatment fields */}
             {visibleFieldGroups.includes('treatment') && (
               <>
-                <TableHead>Страна</TableHead>
-                <TableHead>Номер квартиры</TableHead>
-                <TableHead>Клиника</TableHead>
-                <TableHead>Статус сделки</TableHead>
-                <TableHead>Дата прибытия</TableHead>
-                <TableHead>Дата убытия</TableHead>
-                <TableHead>Виза истекает</TableHead>
-                <TableHead>Примечание</TableHead>
-                <TableHead>Действия</TableHead>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-1" style={{width: '25px', minWidth: '25px', maxWidth: '25px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-2" style={{width: '14px', minWidth: '14px', maxWidth: '14px'}}>Номер квартиры</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-3" style={{width: '32px', minWidth: '32px', maxWidth: '32px'}}>Клиника</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата прибытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата убытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '50px'}}>Виза истекает</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Действия</th>
               </>
             )}
              
             {/* Visa fields */}
             {visibleFieldGroups.includes('visa') && (
               <>
-                <TableHead>Страна</TableHead>
-                <TableHead>Клиника</TableHead>
-                <TableHead>Статус сделки</TableHead>
-                <TableHead>Тип визы</TableHead>
-                <TableHead>Количество дней в визе</TableHead>
-                <TableHead>Истекает</TableHead>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Тип визы</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Количество дней в визе</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Истекает</th>
               </>
             )}
             
             {/* Personal fields (super admin only) */}
             {visibleFieldGroups.includes('personal') && userRole === 'super_admin' && (
               <>
-                <TableHead>Клиника</TableHead>
-                <TableHead>Страна</TableHead>
-                <TableHead>Город</TableHead>
-                <TableHead>Дата рождения</TableHead>
-                <TableHead>Номер паспорта</TableHead>
-                <TableHead>Телефон</TableHead>
-                <TableHead>Электронный адрес</TableHead>
-                <TableHead>Должность</TableHead>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Город</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Дата рождения</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Номер паспорта</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Телефон</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '140px'}}>Электронный адрес</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Должность</th>
               </>
             )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+          </tr>
+        </thead>
+        <tbody>
           {patients.map((patient) => {
 
             return (
-            <TableRow key={`${patient.deal_id}-${patient.patient_full_name}`} className="group">
+            <tr key={`${patient.deal_id}-${patient.patient_full_name}`} className="group border-b hover:bg-gray-50">
               {/* Пациент всегда отображается */}
-              <TableCell className="font-medium">
+              <td className="border-2 border-gray-400 px-4 py-2 font-medium">
                 {patient.patient_full_name || '-'}
-              </TableCell>
+              </td>
               {/* Китайское имя - редактируемое только в treatment */}
               {visibleFieldGroups.includes('treatment') ? (
                 renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'treatment')
               ) : (
-                <TableCell className="min-w-[120px]">
+                <td className="border-2 border-gray-400 px-4 py-2">
                   {patient.patient_chinese_name || '-'}
-                </TableCell>
+                </td>
               )}
               
               {/* Basic fields */}
               {visibleFieldGroups.includes('basic') && (
                 <>
-                  <TableCell>{patient.deal_country || '-'}</TableCell>
-                  <TableCell>{patient.clinic_name || '-'}</TableCell>
-                  <TableCell>{patient.status_name || '-'}</TableCell>
-                  <TableCell>{formatDate(patient.arrival_datetime)}</TableCell>
-                  <TableCell>{patient.arrival_transport_type || '-'}</TableCell>
-                  <TableCell>{patient.arrival_flight_number || '-'}</TableCell>
-                  <TableCell>{patient.apartment_number || '-'}</TableCell>
-                  <TableCell>{patient.visa_type || '-'}</TableCell>
-                  <TableCell>{patient.visa_days || '-'}</TableCell>
-                  <TableCell>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_transport_type || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_flight_number || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.apartment_number || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_type || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_days || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
-                  </TableCell>
+                  </td>
                   {renderEditableCell(patient, 'patient_passport', patient.patient_passport)}
-                  <TableCell>{patient.patient_city || '-'}</TableCell>
-                  <TableCell className="max-w-md">
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_city || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">
                     <ExpandableText text={patient.notes} maxLength={10} />
-                  </TableCell>
+                  </td>
                 </>
               )}
               
               {/* Arrival fields */}
               {visibleFieldGroups.includes('arrival') && (
                 <>
-                  <TableCell>{patient.deal_country || '-'}</TableCell>
-                  <TableCell>{patient.clinic_name || '-'}</TableCell>
-                  <TableCell>{patient.status_name || '-'}</TableCell>
-                  <TableCell>{formatDate(patient.arrival_datetime)}</TableCell>
-                  <TableCell>{patient.arrival_transport_type || '-'}</TableCell>
-                  <TableCell>{patient.departure_airport_code || '-'}</TableCell>
-                  <TableCell>{patient.arrival_city || '-'}</TableCell>
-                  <TableCell>{patient.arrival_flight_number || '-'}</TableCell>
-                  <TableCell>{patient.arrival_terminal || '-'}</TableCell>
-                  <TableCell>{patient.passengers_count || '-'}</TableCell>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_transport_type || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.departure_airport_code || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_city || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_flight_number || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_terminal || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.passengers_count || '-'}</td>
                   {renderEditableCell(patient, 'apartment_number', patient.apartment_number)}
-                  <TableCell className="max-w-md">
+                  <td className="border-2 border-gray-400 px-4 py-2">
                     <ExpandableText text={patient.notes} maxLength={10} />
-                  </TableCell>
+                  </td>
                 </>
               )}
               
               {/* Departure fields */}
               {visibleFieldGroups.includes('departure') && (
                 <>
-                  <TableCell>{patient.deal_country || '-'}</TableCell>
-                  <TableCell>{patient.clinic_name || '-'}</TableCell>
-                  <TableCell>{patient.status_name || '-'}</TableCell>
-                  <TableCell>{formatDate(patient.arrival_datetime)}</TableCell>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
                   {renderEditableCell(patient, 'departure_datetime', patient.departure_datetime, formatDateTimeForEdit)}
                   {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type)}
                   {renderEditableCell(patient, 'departure_city', patient.departure_city)}
                   {renderEditableCell(patient, 'departure_flight_number', patient.departure_flight_number)}
-                  <TableCell className="max-w-md">
+                  <td className="border-2 border-gray-400 px-4 py-2">
                     <ExpandableText text={patient.notes} maxLength={10} />
-                  </TableCell>
+                  </td>
                 </>
               )}
                 
               {/* Treatment fields */}
               {visibleFieldGroups.includes('treatment') && (
                 <>
-                  <TableCell>{patient.deal_country || '-'}</TableCell>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
                   {renderEditableCell(patient, 'apartment_number', patient.apartment_number)}
-                  <TableCell>{patient.clinic_name || '-'}</TableCell>
-                  <TableCell>{patient.status_name || '-'}</TableCell>
-                  <TableCell>{patient.arrival_datetime ? format(parseISO(patient.arrival_datetime), 'dd.MM.yyyy', { locale: ru }) : '-'}</TableCell>
-                  <TableCell>{formatDate(patient.departure_datetime)}</TableCell>
-                  <TableCell>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_datetime ? format(parseISO(patient.arrival_datetime), 'dd.MM.yyyy', { locale: ru }) : '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.departure_datetime)}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
-                  </TableCell>
-                  <TableCell className="max-w-md">
+                  </td>
+                  <td className="border-2 border-gray-400 px-4 py-2">
                     <ExpandableText text={patient.notes} maxLength={10} />
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="border-2 border-gray-400 px-4 py-2">
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -705,42 +711,42 @@ export function PatientTableDesktop({
                       <Plane className="h-4 w-4 mr-1 rotate-45" />
                       {patient.departure_datetime ? 'Редактировать' : 'Добавить билеты'}
                     </Button>
-                  </TableCell>
+                  </td>
                 </>
               )}
                
               {/* Visa fields */}
               {visibleFieldGroups.includes('visa') && (
                 <>
-                  <TableCell>{patient.deal_country || '-'}</TableCell>
-                  <TableCell>{patient.clinic_name || '-'}</TableCell>
-                  <TableCell>{patient.status_name || '-'}</TableCell>
-                  <TableCell>{patient.visa_type || '-'}</TableCell>
-                  <TableCell>{patient.visa_days || '-'}</TableCell>
-                  <TableCell>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_type || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_days || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
-                  </TableCell>
+                  </td>
                 </>
               )}
               
               {/* Personal fields (super admin only) */}
               {visibleFieldGroups.includes('personal') && userRole === 'super_admin' && (
                 <>
-                  <TableCell>{patient.clinic_name || '-'}</TableCell>
-                  <TableCell>{patient.patient_country || '-'}</TableCell>
-                  <TableCell>{patient.patient_city || '-'}</TableCell>
-                  <TableCell>{patient.patient_birthday ? format(parseISO(patient.patient_birthday), 'dd.MM.yyyy', { locale: ru }) : '-'}</TableCell>
-                  <TableCell>{patient.patient_passport || '-'}</TableCell>
-                  <TableCell>{patient.patient_phone || '-'}</TableCell>
-                  <TableCell>{patient.patient_email || '-'}</TableCell>
-                  <TableCell>{patient.patient_position || '-'}</TableCell>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_country || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_city || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_birthday ? format(parseISO(patient.patient_birthday), 'dd.MM.yyyy', { locale: ru }) : '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_passport || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_phone || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_email || '-'}</td>
+                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_position || '-'}</td>
                 </>
               )}
-            </TableRow>
+            </tr>
           );
           })}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
       
       {/* Return Tickets Modal */}
       <Dialog open={showReturnTicketsModal} onOpenChange={setShowReturnTicketsModal}>
@@ -850,6 +856,8 @@ export function PatientTableDesktop({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </StickyHorizontalScroll>
+    </>
   );
 }
