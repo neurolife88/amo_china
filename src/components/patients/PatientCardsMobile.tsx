@@ -13,6 +13,7 @@ import { ru } from 'date-fns/locale';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useCities } from '@/hooks/useCities';
+import ExpandableText from '../ExpandableText';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -542,9 +543,7 @@ export function PatientCardsMobile({
                   <FileText className="h-4 w-4 text-gray-600" />
                   <span className="font-medium text-sm">Примечание</span>
                 </div>
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  {patient.notes}
-                </div>
+                <ExpandableText text={patient.notes} maxLength={10} />
               </div>
             )}
           </CardContent>

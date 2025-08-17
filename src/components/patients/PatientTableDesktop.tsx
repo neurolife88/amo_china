@@ -19,6 +19,7 @@ import { ru } from 'date-fns/locale';
 import { Edit2, Check, X, Plane } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCities } from '@/hooks/useCities';
+import ExpandableText from '../ExpandableText';
 import { Calendar } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -637,7 +638,9 @@ export function PatientTableDesktop({
                   </TableCell>
                   {renderEditableCell(patient, 'patient_passport', patient.patient_passport)}
                   <TableCell>{patient.patient_city || '-'}</TableCell>
-                  <TableCell>{patient.notes || '-'}</TableCell>
+                  <TableCell className="max-w-md">
+                    <ExpandableText text={patient.notes} maxLength={10} />
+                  </TableCell>
                 </>
               )}
               
@@ -655,7 +658,9 @@ export function PatientTableDesktop({
                   <TableCell>{patient.arrival_terminal || '-'}</TableCell>
                   <TableCell>{patient.passengers_count || '-'}</TableCell>
                   {renderEditableCell(patient, 'apartment_number', patient.apartment_number)}
-                  <TableCell>{patient.notes || '-'}</TableCell>
+                  <TableCell className="max-w-md">
+                    <ExpandableText text={patient.notes} maxLength={10} />
+                  </TableCell>
                 </>
               )}
               
@@ -670,7 +675,9 @@ export function PatientTableDesktop({
                   {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type)}
                   {renderEditableCell(patient, 'departure_city', patient.departure_city)}
                   {renderEditableCell(patient, 'departure_flight_number', patient.departure_flight_number)}
-                  <TableCell>{patient.notes || '-'}</TableCell>
+                  <TableCell className="max-w-md">
+                    <ExpandableText text={patient.notes} maxLength={10} />
+                  </TableCell>
                 </>
               )}
                 
@@ -686,7 +693,9 @@ export function PatientTableDesktop({
                   <TableCell>
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
                   </TableCell>
-                  <TableCell>{patient.notes || '-'}</TableCell>
+                  <TableCell className="max-w-md">
+                    <ExpandableText text={patient.notes} maxLength={10} />
+                  </TableCell>
                   <TableCell>
                     <Button 
                       variant="outline" 
