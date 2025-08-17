@@ -18,6 +18,7 @@ import { Calendar } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ReturnTicketsModal } from '@/components/common/Modals';
 
 interface PatientTableDesktopProps {
   patients: PatientData[];
@@ -749,113 +750,14 @@ export function PatientTableDesktop({
       </table>
       
       {/* Return Tickets Modal */}
-      <Dialog open={showReturnTicketsModal} onOpenChange={setShowReturnTicketsModal}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Редактировать обратные билеты</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {/* Transport Type */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="departure_transport_type" className="text-right">
-                Транспорт
-              </Label>
-              <Select
-                value={returnTicketsData.departure_transport_type}
-                onValueChange={(value) => setReturnTicketsData(prev => ({ ...prev, departure_transport_type: value }))}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Выберите транспорт" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Самолет">Самолет</SelectItem>
-                  <SelectItem value="Поезд">Поезд</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* City */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="departure_city" className="text-right">
-                Город
-              </Label>
-              <Select
-                value={returnTicketsData.departure_city}
-                onValueChange={(value) => setReturnTicketsData(prev => ({ ...prev, departure_city: value }))}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Выберите город" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.city_name}>
-                      {city.city_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Date and Time */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Дата и время</Label>
-              <div className="col-span-3 flex gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex-1 justify-start text-left font-normal"
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {returnTicketsData.departure_datetime ? (
-                        format(returnTicketsData.departure_datetime, 'dd.MM.yyyy', { locale: ru })
-                      ) : (
-                        <span className="text-muted-foreground">Дата</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <CalendarComponent
-                      mode="single"
-                      selected={returnTicketsData.departure_datetime}
-                      onSelect={(date) => setReturnTicketsData(prev => ({ ...prev, departure_datetime: date }))}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Input
-                  type="time"
-                  value={returnTicketsData.departure_time}
-                  onChange={(e) => setReturnTicketsData(prev => ({ ...prev, departure_time: e.target.value }))}
-                  className="w-32"
-                />
-              </div>
-            </div>
-
-            {/* Flight Number */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="departure_flight_number" className="text-right">
-                Рейс
-              </Label>
-              <Input
-                id="departure_flight_number"
-                value={returnTicketsData.departure_flight_number}
-                onChange={(e) => setReturnTicketsData(prev => ({ ...prev, departure_flight_number: e.target.value }))}
-                className="col-span-3"
-                placeholder="Номер рейса"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancelReturnTickets}>
-              Отмена
-            </Button>
-            <Button onClick={handleSaveReturnTickets}>
-              Сохранить
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ReturnTicketsModal
+        open={showReturnTicketsModal}
+        onOpenChange={setShowReturnTicketsModal}
+        data={returnTicketsData}
+        onDataChange={(updates) => setReturnTicketsData(prev => ({ ...prev, ...updates }))}
+        onSave={handleSaveReturnTickets}
+        cities={cities}
+      />
       </div>
     </StickyHorizontalScroll>
     </>
