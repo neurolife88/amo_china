@@ -17,6 +17,7 @@ import ExpandableText from '../ExpandableText';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { EditableNotesCell } from './EditableNotesCell';
 
 interface PatientCardsMobileProps {
   patients: PatientData[];
@@ -83,7 +84,15 @@ export function PatientCardsMobile({
         if (editValue) {
           try {
             const date = new Date(editValue);
-            updates.departure_datetime = date.toISOString();
+            // Форматируем время без UTC конвертации
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            updates.departure_datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
           } catch (error) {
             updates.departure_datetime = editValue;
           }
@@ -127,16 +136,22 @@ export function PatientCardsMobile({
 
   const canEdit = (field: string, fieldGroup?: string) => {
     const editableFields = [
-      'apartment_number', // Включаю обратно
+      'apartment_number',
       'departure_city', 
       'departure_datetime', 
       'departure_flight_number',
-      'departure_transport_type'
+      'departure_transport_type',
+      'notes' // Добавляем поддержку редактирования примечаний
     ];
     
     // Китайское имя можно редактировать только в закладке "На лечении"
     if (field === 'patient_chinese_name') {
       return (userRole === 'coordinator' || userRole === 'super_admin') && fieldGroup === 'treatment';
+    }
+    
+    // Примечания могут редактировать все роли
+    if (field === 'notes') {
+      return userRole === 'coordinator' || userRole === 'director' || userRole === 'super_admin';
     }
     
     return (userRole === 'coordinator' || userRole === 'super_admin') && editableFields.includes(field);
@@ -240,7 +255,14 @@ export function PatientCardsMobile({
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
     try {
-      return format(parseISO(dateString), 'dd.MM.yyyy HH:mm', { locale: ru });
+      // Парсим время как есть, без UTC конвертации
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
     } catch {
       return dateString;
     }
@@ -301,10 +323,25 @@ export function PatientCardsMobile({
     if (!selectedDealId) return;
     
     try {
+      // Сохраняем время как простую строку без создания Date объекта
+      let departureDateTime = null;
+      if (returnTicketsData.departure_datetime && returnTicketsData.departure_time) {
+        const date = new Date(returnTicketsData.departure_datetime);
+        const [hours, minutes] = returnTicketsData.departure_time.split(':');
+        
+        // Просто форматируем строку без создания нового Date
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        // Используем время как есть, без конвертации
+        departureDateTime = `${year}-${month}-${day} ${hours}:${minutes}:00`;
+      }
+
               await onPatientUpdate(selectedDealId, {
           departure_transport_type: returnTicketsData.departure_transport_type,
           departure_city: returnTicketsData.departure_city,
-          departure_datetime: returnTicketsData.departure_datetime ? returnTicketsData.departure_datetime.toISOString() : null,
+        departure_datetime: departureDateTime,
           departure_time: returnTicketsData.departure_time,
           departure_flight_number: returnTicketsData.departure_flight_number
         });
@@ -499,6 +536,9 @@ export function PatientCardsMobile({
                 <div className="text-sm">
                   <span className="text-muted-foreground">Тип:</span> {patient.visa_type || '-'}
                 </div>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Дней в визе:</span> {patient.visa_days || '-'}
+                </div>
                 {patient.days_until_visa_expires !== null && (
                   <div className="text-sm">
                     <span className="text-muted-foreground">До истечения:</span>{' '}
@@ -509,6 +549,13 @@ export function PatientCardsMobile({
                         : `Просрочено на ${Math.abs(patient.days_until_visa_expires)} дней`}
                   </div>
                 )}
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Истекает дата:</span>{' '}
+                  {patient.last_day_in_china ? 
+                    format(parseISO(patient.last_day_in_china), 'dd.MM.yyyy', { locale: ru }) : 
+                    '-'
+                  }
+                </div>
               </div>
             )}
 
@@ -537,13 +584,27 @@ export function PatientCardsMobile({
             {(visibleFieldGroups.includes('basic') || 
               visibleFieldGroups.includes('arrival') || 
               visibleFieldGroups.includes('treatment') || 
-              visibleFieldGroups.includes('departure')) && patient.notes && (
+              visibleFieldGroups.includes('departure')) && (
               <div className="p-2 rounded bg-gray-50 dark:bg-gray-950/20 space-y-2">
                 <div className="flex items-center space-x-2">
                   <FileText className="h-4 w-4 text-gray-600" />
                   <span className="font-medium text-sm">Примечание</span>
                 </div>
-                <ExpandableText text={patient.notes} maxLength={10} />
+                <EditableNotesCell
+                  value={patient.notes}
+                  onSave={async (newValue: string) => {
+                    const updates: Partial<PatientData> = { notes: newValue };
+                    await onPatientUpdate(patient.deal_id, updates);
+                    toast({
+                      title: "Успешно обновлено",
+                      description: "Примечание обновлено",
+                    });
+                  }}
+                  patientName={patient.patient_full_name}
+                  patientChineseName={patient.patient_chinese_name}
+                  maxDisplayLength={10}
+                  canEdit={canEdit('notes', visibleFieldGroups[0])}
+                />
               </div>
             )}
           </CardContent>

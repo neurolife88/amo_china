@@ -19,6 +19,8 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ReturnTicketsModal } from '@/components/common/Modals';
+import { EditableNotesCell } from './EditableNotesCell';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PatientTableDesktopProps {
   patients: PatientData[];
@@ -67,6 +69,18 @@ export function PatientTableDesktop({
       } catch (error) {
         setEditValue(currentValue || '');
       }
+    } else if (field === 'china_entry_date' && currentValue) {
+      // Convert date to YYYY-MM-DD format for date input
+      try {
+        const date = new Date(currentValue);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateValue = `${year}-${month}-${day}`;
+        setEditValue(dateValue);
+      } catch (error) {
+        setEditValue(currentValue || '');
+      }
     } else {
       setEditValue(currentValue || '');
     }
@@ -74,6 +88,61 @@ export function PatientTableDesktop({
 
   const saveEdit = async (dealId: number, field: string) => {
     try {
+      // Специальная обработка для поля china_entry_date через RPC
+      if (field === 'china_entry_date') {
+        try {
+          const { data, error } = await supabase.rpc('update_china_entry_date' as any, {
+            p_deal_id: dealId,
+            p_entry_date: editValue
+          });
+          
+          // Логируем полный ответ для отладки
+          console.log('RPC Response error:', error);
+
+          if (error) {
+            console.error('China entry date RPC error:', error);
+            throw new Error(`Ошибка обновления даты въезда: ${error.message}`);
+          }
+          
+          // Проверяем отладочную информацию
+          if (data) {
+            console.log('Debug role:', (data as any).debug_role);
+            console.log('Debug message:', (data as any).debug_message);
+          }
+
+          if (data && !(data as any).success) {
+            console.error('China entry date function error:', (data as any).error);
+            throw new Error(`Ошибка обновления даты въезда: ${(data as any).error}`);
+          }
+          
+          console.log('China entry date updated successfully via RPC:', data);
+
+          // Обновляем локальные данные пациента
+          const updatedPatient = patients.find(p => p.deal_id === dealId);
+          if (updatedPatient) {
+            updatedPatient.china_entry_date = editValue;
+            // Пересчитываем последнюю дату в Китае
+            if (updatedPatient.visa_days) {
+              const entryDate = new Date(editValue);
+              const lastDay = new Date(entryDate);
+              lastDay.setDate(lastDay.getDate() + updatedPatient.visa_days - 1);
+              updatedPatient.last_day_in_china = lastDay.toISOString().split('T')[0];
+            }
+          }
+
+          setEditingField(null);
+          toast({
+            title: "Успешно обновлено",
+            description: "Дата въезда в Китай обновлена",
+          });
+
+          return;
+        } catch (rpcError) {
+          console.error('China entry date RPC call failed:', rpcError);
+          throw new Error(`Ошибка вызова функции обновления даты въезда: ${rpcError instanceof Error ? rpcError.message : 'Неизвестная ошибка'}`);
+        }
+      }
+
       const updates: Partial<PatientData> = {};
       
       // Map field names to PatientData properties
@@ -83,16 +152,24 @@ export function PatientTableDesktop({
         'departure_datetime': 'departure_datetime',
         'departure_flight_number': 'departure_flight_number',
         'departure_transport_type': 'departure_transport_type',
-        'patient_chinese_name': 'patient_chinese_name'
+        'patient_chinese_name': 'patient_chinese_name',
+        'notes': 'notes'
       };
       
       const propertyName = fieldMapping[field];
       if (propertyName) {
         if (field === 'departure_datetime' && editValue) {
-          // Convert datetime-local format to ISO string
+          // Сохраняем время как есть, без конвертации в UTC
           try {
             const date = new Date(editValue);
-            (updates as any)[propertyName] = date.toISOString();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            // Форматируем как строку без UTC конвертации
+            (updates as any)[propertyName] = `${year}-${month}-${day} ${hours}:${minutes}:00`;
           } catch (error) {
             (updates as any)[propertyName] = editValue;
           }
@@ -130,16 +207,28 @@ export function PatientTableDesktop({
 
   const canEdit = (field: string, fieldGroup?: string) => {
     const editableFields = [
-      'apartment_number', // Включаю обратно
+      'apartment_number',
       'departure_city', 
       'departure_datetime',
       'departure_flight_number',
-      'departure_transport_type'
+      'departure_transport_type',
+      'notes',
+      'china_entry_date' 
     ];
     
     // Китайское имя можно редактировать только в закладке "На лечении"
     if (field === 'patient_chinese_name') {
       return (userRole === 'coordinator' || userRole === 'super_admin') && fieldGroup === 'treatment';
+    }
+    
+    // Примечания могут редактировать все роли
+    if (field === 'notes') {
+      return userRole === 'coordinator' || userRole === 'director' || userRole === 'super_admin';
+    }
+    
+    // Дата въезда в Китай могут редактировать координаторы и супер админы
+    if (field === 'china_entry_date') {
+      return userRole === 'coordinator' || userRole === 'super_admin';
     }
     
     return (userRole === 'coordinator' || userRole === 'super_admin') && editableFields.includes(field);
@@ -148,6 +237,45 @@ export function PatientTableDesktop({
   const renderEditableCell = (patient: PatientData, field: string, value: string | null, formatValue?: (val: string | null) => string, fieldGroup?: string) => {
     const displayValue = formatValue ? formatValue(value) : (value || '-');
     const rawValue = value || '';
+
+    // Специальная обработка для поля notes
+    if (field === 'notes') {
+      return (
+        <td className="border-2 border-gray-400 px-4 py-2">
+          <EditableNotesCell
+            value={value}
+            onSave={async (newValue: string) => {
+              console.log('PatientTableDesktop onSave called with:', newValue);
+              console.log('Patient deal_id:', patient.deal_id);
+              
+              const updates: Partial<PatientData> = { notes: newValue };
+              console.log('Updates object:', updates);
+              
+              try {
+                await onPatientUpdate(patient.deal_id, updates);
+                console.log('onPatientUpdate completed successfully');
+                
+                toast({
+                  title: "Успешно обновлено",
+                  description: "Примечание обновлено",
+                });
+              } catch (error) {
+                console.error('Error in onPatientUpdate:', error);
+                toast({
+                  title: "Ошибка обновления",
+                  description: `Не удалось обновить примечание: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
+                  variant: "destructive",
+                });
+              }
+            }}
+            patientName={patient.patient_full_name}
+            patientChineseName={patient.patient_chinese_name}
+            maxDisplayLength={10}
+            canEdit={canEdit(field, fieldGroup)}
+          />
+        </td>
+      );
+    }
 
     if (isEditing(patient.deal_id, field)) {
       // Special handling for different field types
@@ -305,6 +433,45 @@ export function PatientTableDesktop({
         );
       }
 
+      if (field === 'china_entry_date') {
+        return (
+          <td className="border-2 border-gray-400 px-4 py-2">
+            <div className="flex items-center gap-2">
+              <Input
+                type="date"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    saveEdit(patient.deal_id, field);
+                  } else if (e.key === 'Escape') {
+                    cancelEdit();
+                  }
+                }}
+                className="h-8 text-sm"
+                autoFocus
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => saveEdit(patient.deal_id, field)}
+                className="h-6 w-6 p-0"
+              >
+                <Check className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={cancelEdit}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </td>
+        );
+      }
+
       // Default input for other fields
       return (
         <td className="border-2 border-gray-400 px-4 py-2">
@@ -362,7 +529,14 @@ export function PatientTableDesktop({
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
     try {
-      return format(parseISO(dateString), 'dd.MM.yyyy HH:mm', { locale: ru });
+      // Парсим время как есть, без UTC конвертации
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
     } catch {
       return dateString;
     }
@@ -371,7 +545,14 @@ export function PatientTableDesktop({
   const formatDateTimeForEdit = (dateString: string | null) => {
     if (!dateString) return '-';
     try {
-      return format(parseISO(dateString), 'dd.MM.yyyy HH:mm', { locale: ru });
+      // Парсим время как есть, без UTC конвертации
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
     } catch {
       return dateString;
     }
@@ -442,13 +623,19 @@ export function PatientTableDesktop({
     if (!selectedDealId) return;
     
     try {
-      // Формируем дату и время для сохранения
+      // Сохраняем время как простую строку без создания Date объекта
       let departureDateTime = null;
       if (returnTicketsData.departure_datetime && returnTicketsData.departure_time) {
         const date = new Date(returnTicketsData.departure_datetime);
         const [hours, minutes] = returnTicketsData.departure_time.split(':');
-        date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        departureDateTime = date.toISOString();
+        
+        // Просто форматируем строку без создания нового Date
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        // Используем время как есть, без конвертации
+        departureDateTime = `${year}-${month}-${day} ${hours}:${minutes}:00`;
       }
 
       await onPatientUpdate(selectedDealId, {
@@ -591,7 +778,9 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Тип визы</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Количество дней в визе</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Дата въезда в Китай</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Истекает</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Истекает дата</th>
               </>
             )}
             
@@ -645,9 +834,7 @@ export function PatientTableDesktop({
                   </td>
                   {renderEditableCell(patient, 'patient_passport', patient.patient_passport)}
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_city || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">
-                    <ExpandableText text={patient.notes} maxLength={10} />
-                  </td>
+                  {renderEditableCell(patient, 'notes', patient.notes, undefined, 'basic')}
                 </>
               )}
               
@@ -665,9 +852,7 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_terminal || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.passengers_count || '-'}</td>
                   {renderEditableCell(patient, 'apartment_number', patient.apartment_number)}
-                  <td className="border-2 border-gray-400 px-4 py-2">
-                    <ExpandableText text={patient.notes} maxLength={10} />
-                  </td>
+                  {renderEditableCell(patient, 'notes', patient.notes, undefined, 'arrival')}
                 </>
               )}
               
@@ -682,9 +867,7 @@ export function PatientTableDesktop({
                   {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type)}
                   {renderEditableCell(patient, 'departure_city', patient.departure_city)}
                   {renderEditableCell(patient, 'departure_flight_number', patient.departure_flight_number)}
-                  <td className="border-2 border-gray-400 px-4 py-2">
-                    <ExpandableText text={patient.notes} maxLength={10} />
-                  </td>
+                  {renderEditableCell(patient, 'notes', patient.notes, undefined, 'departure')}
                 </>
               )}
                 
@@ -700,9 +883,7 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
                   </td>
-                  <td className="border-2 border-gray-400 px-4 py-2">
-                    <ExpandableText text={patient.notes} maxLength={10} />
-                  </td>
+                  {renderEditableCell(patient, 'notes', patient.notes, undefined, 'treatment')}
                   <td className="border-2 border-gray-400 px-4 py-2">
                     <Button 
                       variant="outline" 
@@ -724,8 +905,16 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_type || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_days || '-'}</td>
+                  {renderEditableCell(patient, 'china_entry_date', patient.china_entry_date, 
+                    (val) => val ? format(parseISO(val), 'dd.MM.yyyy', { locale: ru }) : '-', 'visa')}
                   <td className="border-2 border-gray-400 px-4 py-2">
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
+                  </td>
+                  <td className="border-2 border-gray-400 px-4 py-2">
+                    {patient.last_day_in_china ? 
+                      format(parseISO(patient.last_day_in_china), 'dd.MM.yyyy', { locale: ru }) : 
+                      '-'
+                    }
                   </td>
                 </>
               )}

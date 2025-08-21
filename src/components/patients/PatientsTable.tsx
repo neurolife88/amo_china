@@ -3,16 +3,16 @@ import { useState, useEffect, useMemo } from 'react';
 import { usePatients } from '@/hooks/usePatients';
 import { PatientFilters, FieldGroup } from '@/types/patient';
 import { FilterPanel } from './FilterPanel';
-import { PatientTableDesktop } from './PatientTableDesktop';
+import { PatientTableDesktop } from './PatientTableDesktop.refactored';
 import { PatientCardsMobile } from './PatientCardsMobile';
-import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { getSortedPatientsForFieldGroup } from '@/lib/sorting';
 
 export function PatientsTable() {
-  const { profile } = useAuth();
+  const permissions = usePermissions();
   const { patients, loading, error, loadPatients, updatePatient } = usePatients();
   const [isMobile, setIsMobile] = useState(false);
   
@@ -35,11 +35,11 @@ export function PatientsTable() {
 
   // Load patients when filters change
   useEffect(() => {
-    if (profile) {
+    if (permissions.userRole) {
       const currentFieldGroup = visibleFieldGroups[0] || 'basic';
       loadPatients({ ...filters, fieldGroup: currentFieldGroup });
     }
-  }, [filters, profile, loadPatients, visibleFieldGroups]);
+  }, [filters, permissions.userRole, loadPatients, visibleFieldGroups]);
 
   const handleFilterChange = (newFilters: PatientFilters) => {
     setFilters(newFilters);
@@ -48,7 +48,7 @@ export function PatientsTable() {
   const handleFieldGroupToggle = (group: FieldGroup) => {
     setVisibleFieldGroups([group]);
     // Перезагружаем данные с новым fieldGroup
-    if (profile) {
+    if (permissions.userRole) {
       loadPatients({ ...filters, fieldGroup: group });
     }
   };
@@ -141,7 +141,22 @@ export function PatientsTable() {
     return sortedPatients;
   }, [patients, visibleFieldGroups]);
 
-  if (!profile) {
+  // Создаем обертку для updatePatient которая сохраняет фильтры
+  const handlePatientUpdate = async (dealId: number, updates: Partial<PatientData>) => {
+    try {
+      // Обновляем данные
+      await updatePatient(dealId, updates);
+      
+      // Перезагружаем с текущими фильтрами
+      const currentFieldGroup = visibleFieldGroups[0] || 'basic';
+      await loadPatients({ ...filters, fieldGroup: currentFieldGroup });
+    } catch (error) {
+      // Ошибка уже обрабатывается в updatePatient
+      throw error;
+    }
+  };
+
+  if (!permissions.userRole) {
     return (
       <Alert>
         <AlertCircle className="h-4 w-4" />
@@ -158,8 +173,8 @@ export function PatientsTable() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold text-foreground">Управление пациентами</h1>
         <p className="text-muted-foreground">
-          {profile.role === 'coordinator' 
-            ? `Клиника: ${profile.clinic_name}` 
+          {permissions.isCoordinator 
+            ? `Клиника: ${permissions.userClinic}` 
             : 'Все клиники'}
         </p>
       </div>
@@ -238,7 +253,7 @@ export function PatientsTable() {
               key: 'personal', 
               label: 'Личные данные', 
               count: 0,
-              enabled: profile.role === 'super_admin' 
+              enabled: permissions.isSuperAdmin 
             }
           ].filter(group => group.enabled).map(({ key, label, count }) => (
             <button
@@ -282,19 +297,18 @@ export function PatientsTable() {
         </div>
       ) : (
         <>
-          {isMobile ? (
+                    {isMobile ? (
             <PatientCardsMobile 
-              patients={sortedPatients}
+              patients={sortedPatients} 
               visibleFieldGroups={visibleFieldGroups}
-              onPatientUpdate={updatePatient}
-              userRole={profile.role}
+              onPatientUpdate={handlePatientUpdate}
+              userRole={permissions.userRole!}
             />
           ) : (
             <PatientTableDesktop 
-              patients={sortedPatients}
+              patients={sortedPatients} 
               visibleFieldGroups={visibleFieldGroups}
-              onPatientUpdate={updatePatient}
-              userRole={profile.role}
+              onPatientUpdate={handlePatientUpdate}
             />
           )}
           

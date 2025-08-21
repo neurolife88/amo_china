@@ -63,7 +63,7 @@ export function ReturnTicketsModal({
               Транспорт
             </Label>
             <Select
-              value={data.departure_transport_type}
+              value={data?.departure_transport_type || ''}
               onValueChange={(value) => onDataChange({ departure_transport_type: value })}
             >
               <SelectTrigger className="col-span-3">
@@ -82,7 +82,7 @@ export function ReturnTicketsModal({
               Город
             </Label>
             <Select
-              value={data.departure_city}
+              value={data?.departure_city || ''}
               onValueChange={(value) => onDataChange({ departure_city: value })}
             >
               <SelectTrigger className="col-span-3">
@@ -109,7 +109,7 @@ export function ReturnTicketsModal({
                     className="flex-1 justify-start text-left font-normal"
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {data.departure_datetime ? (
+                    {data?.departure_datetime ? (
                       format(data.departure_datetime, 'dd.MM.yyyy', { locale: ru })
                     ) : (
                       <span className="text-muted-foreground">Дата</span>
@@ -117,17 +117,17 @@ export function ReturnTicketsModal({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <CalendarComponent
-                    mode="single"
-                    selected={data.departure_datetime || undefined}
-                    onSelect={(date) => onDataChange({ departure_datetime: date || null })}
-                    initialFocus
-                  />
+                                  <CalendarComponent
+                  mode="single"
+                  selected={data?.departure_datetime || undefined}
+                  onSelect={(date) => onDataChange({ departure_datetime: date || null })}
+                  initialFocus
+                />
                 </PopoverContent>
               </Popover>
               <Input
                 type="time"
-                value={data.departure_time}
+                value={data?.departure_time || '12:00'}
                 onChange={(e) => onDataChange({ departure_time: e.target.value })}
                 className="w-32"
               />
@@ -141,7 +141,7 @@ export function ReturnTicketsModal({
             </Label>
             <Input
               id="departure_flight_number"
-              value={data.departure_flight_number}
+              value={data?.departure_flight_number || ''}
               onChange={(e) => onDataChange({ departure_flight_number: e.target.value })}
               className="col-span-3"
               placeholder="Номер рейса"

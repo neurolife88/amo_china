@@ -118,7 +118,9 @@ export function usePatients() {
         visa_entries_count: row.visa_entries_count,
         visa_corridor_start: row.visa_corridor_start,
         visa_corridor_end: row.visa_corridor_end,
+        china_entry_date: row.china_entry_date,  // ← NEW: Date of entry to China
         visa_expiry_date: row.visa_expiry_date,
+        last_day_in_china: row.last_day_in_china,  // ← NEW: Last day in China
         days_until_visa_expires: row.days_until_visa_expires,
         visa_status: (row.visa_status as 'Active' | 'Expiring Soon' | 'Expired') || null,
       }));
@@ -132,13 +134,13 @@ export function usePatients() {
     }
   }, [profile]);
 
-  const updatePatient = async (dealId: number, updates: any) => {
+  const updatePatient = async (dealId: number, updates: Partial<PatientData>) => {
     try {
       console.log('Starting update for dealId:', dealId, 'with updates:', updates);
       
       // Разделяем поля по таблицам
       const dealsFields = [
-        'deal_name', 'pipeline_name', 'status_name', 'deal_country', 'visa_city', 'notes'
+        'deal_name', 'pipeline_name', 'status_name', 'deal_country', 'visa_city'
       ];
       const contactsFields = [
         'patient_chinese_name'
@@ -168,7 +170,65 @@ export function usePatients() {
         }
       });
 
-      // Обновляем таблицу deals если есть изменения
+      // Специальная обработка для поля notes через RPC
+      if (updates.notes !== undefined) {
+        try {
+          // Получаем текущего пользователя
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          console.log('Debug: user ID for RPC call:', user?.id);
+          
+          const { data, error: notesError } = await supabase.rpc('update_deal_notes', {
+            p_deal_id: dealId,
+            p_notes: updates.notes,
+            p_user_id: user?.id
+          });
+          
+          if (notesError) {
+            console.error('Notes RPC error:', notesError);
+            throw new Error(`Ошибка обновления notes: ${notesError.message}`);
+          }
+          
+          if (data && !data.success) {
+            console.error('Notes function error:', data.error);
+            throw new Error(`Ошибка обновления notes: ${data.error}`);
+          }
+          
+          console.log('Notes updated successfully via RPC:', data);
+        } catch (rpcError) {
+          console.error('Notes RPC call failed:', rpcError);
+          throw new Error(`Ошибка вызова функции обновления notes: ${rpcError instanceof Error ? rpcError.message : 'Неизвестная ошибка'}`);
+        }
+      }
+
+      // Специальная обработка для поля china_entry_date через RPC
+      if (updates.china_entry_date !== undefined) {
+        try {
+          console.log('Updating china_entry_date via RPC:', updates.china_entry_date);
+          
+          const { data, error: chinaEntryError } = await supabase.rpc('update_china_entry_date', {
+            p_deal_id: dealId,
+            p_entry_date: updates.china_entry_date
+          });
+          
+          if (chinaEntryError) {
+            console.error('China entry date RPC error:', chinaEntryError);
+            throw new Error(`Ошибка обновления даты въезда: ${chinaEntryError.message}`);
+          }
+          
+          if (data && !data.success) {
+            console.error('China entry date function error:', data.error);
+            throw new Error(`Ошибка обновления даты въезда: ${data.error}`);
+          }
+          
+          console.log('China entry date updated successfully via RPC:', data);
+        } catch (rpcError) {
+          console.error('China entry date RPC call failed:', rpcError);
+          throw new Error(`Ошибка вызова функции обновления даты въезда: ${rpcError instanceof Error ? rpcError.message : 'Неизвестная ошибка'}`);
+        }
+      }
+
+      // Обновляем таблицу deals если есть изменения (кроме notes)
       if (Object.keys(dealsUpdates).length > 0) {
         const { error: dealsError } = await supabase
           .from('deals')
@@ -256,7 +316,7 @@ export function usePatients() {
         }
       }
 
-      // Перезагружаем данные
+      // Перезагружаем данные после обновления
       await loadPatients({ search: '', fieldGroup: 'basic' });
       
       console.log('Update successful');

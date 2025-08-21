@@ -57,7 +57,9 @@ export interface PatientData {
   visa_entries_count: string | null;
   visa_corridor_start: string | null;
   visa_corridor_end: string | null;
+  china_entry_date: string | null;  // ← NEW: Date of entry to China
   visa_expiry_date: string | null;
+  last_day_in_china: string | null;  // ← NEW: Last day in China
   days_until_visa_expires: number | null;
   visa_status: 'Active' | 'Expiring Soon' | 'Expired' | null;
 }
@@ -73,7 +75,7 @@ export interface PatientFilters {
 }
 
 export type FieldGroup = 'basic' | 'arrival' | 'departure' | 'treatment' | 'visa' | 'personal';
-export type EditableField = 'apartment_number' | 'departure_city' | 'departure_datetime' | 'departure_flight_number' | 'departure_transport_type' | 'patient_chinese_name';
+export type EditableField = 'apartment_number' | 'departure_city' | 'departure_datetime' | 'departure_flight_number' | 'departure_transport_type' | 'patient_chinese_name' | 'china_entry_date';
 
 export interface SortConfig {
   field: keyof PatientData;

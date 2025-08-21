@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/auth';
@@ -14,6 +14,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refetchProfile: () => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,13 +26,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
 
-  const fetchProfile = async (userId: string, retryCount = 0) => {
+  const fetchProfile = useCallback(async (userId: string, retryCount = 0) => {
     try {
       setProfileError(null);
       
       const { data: profileData, error } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select('id, user_id, email, full_name, role, clinic_name, created_at, updated_at')
         .eq('user_id', userId)
         .maybeSingle();
       
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfileError('Network error while loading profile');
       setProfile(null);
     }
-  };
+  }, []);
 
   const resendVerificationEmail = async () => {
     if (!user?.email) return;
@@ -67,11 +68,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
-  const refetchProfile = async () => {
+  const refetchProfile = useCallback(async () => {
     if (user?.id) {
       await fetchProfile(user.id);
     }
-  };
+  }, [user?.id, fetchProfile]);
+
+  const clearError = useCallback(() => {
+    setProfileError(null);
+  }, []);
 
   useEffect(() => {
     // Listen for auth changes first
@@ -127,7 +132,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, profileError, emailVerified, signIn, signOut, refetchProfile, resendVerificationEmail }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading, 
+      profileError, 
+      emailVerified, 
+      signIn, 
+      signOut, 
+      refetchProfile, 
+      resendVerificationEmail,
+      clearError 
+    }}>
       {children}
     </AuthContext.Provider>
   );
