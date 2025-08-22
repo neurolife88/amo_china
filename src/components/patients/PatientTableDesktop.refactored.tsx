@@ -516,6 +516,28 @@ export function PatientTableDesktop({
     return <div className="flex justify-center p-8">Загрузка...</div>;
   }
 
+  // Добавлю функции для условного рендеринга
+  const renderTableHeader = (fieldName: string, fieldGroup: FieldGroup, displayName: string, style?: any) => {
+    if (!permissions.shouldShowField(fieldName, fieldGroup)) {
+      return null;
+    }
+    return (
+      <th 
+        className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" 
+        style={style}
+      >
+        {displayName}
+      </th>
+    );
+  };
+
+  const renderTableCell = (patient: PatientData, fieldName: string, fieldGroup: FieldGroup, value: any) => {
+    if (!permissions.shouldShowField(fieldName, fieldGroup)) {
+      return null;
+    }
+    return <td className="border-2 border-gray-400 px-4 py-2">{value || '-'}</td>;
+  };
+
   return (
     <StickyHorizontalScroll>
       <div className="overflow-x-auto">
@@ -539,8 +561,8 @@ export function PatientTableDesktop({
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Страна</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Город</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                {renderTableHeader('clinic_name', 'basic', 'Клиника', {width: '80px'})}
+                {renderTableHeader('status_name', 'basic', 'Статус сделки', {width: '70px'})}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Дата и время прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Транспорт</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Рейс</th>
@@ -556,8 +578,8 @@ export function PatientTableDesktop({
             {visibleFieldGroups.includes('arrival') && (
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                {renderTableHeader('clinic_name', 'arrival', 'Клиника', {width: '100px'})}
+                {renderTableHeader('status_name', 'arrival', 'Статус сделки', {width: '90px'})}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '75px', minWidth: '75px', maxWidth: '75px'}}>Транспорт</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>Код аэропорта</th>
@@ -574,8 +596,8 @@ export function PatientTableDesktop({
             {visibleFieldGroups.includes('departure') && (
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                {renderTableHeader('clinic_name', 'departure', 'Клиника', {width: '100px'})}
+                {renderTableHeader('status_name', 'departure', 'Статус сделки', {width: '90px'})}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время убытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Транспорт</th>
@@ -590,8 +612,8 @@ export function PatientTableDesktop({
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-1" style={{width: '25px', minWidth: '25px', maxWidth: '25px'}}>Страна</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-2" style={{width: '14px', minWidth: '14px', maxWidth: '14px'}}>Номер квартиры</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-3" style={{width: '32px', minWidth: '32px', maxWidth: '32px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                {renderTableHeader('clinic_name', 'treatment', 'Клиника', {width: '32px', minWidth: '32px', maxWidth: '32px'})}
+                {renderTableHeader('status_name', 'treatment', 'Статус сделки', {width: '70px'})}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата убытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '50px'}}>Виза истекает</th>
@@ -604,8 +626,8 @@ export function PatientTableDesktop({
             {visibleFieldGroups.includes('visa') && (
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                {renderTableHeader('clinic_name', 'visa', 'Клиника', {width: '100px'})}
+                {renderTableHeader('status_name', 'visa', 'Статус сделки', {width: '90px'})}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Тип визы</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Количество дней в визе</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Дата въезда в Китай</th>
@@ -643,10 +665,10 @@ export function PatientTableDesktop({
                 {/* Basic fields */}
                 {visibleFieldGroups.includes('basic') && (
                   <>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_city || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                    {renderTableCell(patient, 'deal_country', 'basic', patient.deal_country)}
+                    {renderTableCell(patient, 'patient_city', 'basic', patient.patient_city)}
+                    {renderTableCell(patient, 'clinic_name', 'basic', patient.clinic_name)}
+                    {renderTableCell(patient, 'status_name', 'basic', patient.status_name)}
                     <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_transport_type || '-'}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_flight_number || '-'}</td>
@@ -664,17 +686,17 @@ export function PatientTableDesktop({
                 {visibleFieldGroups.includes('arrival') && (
                   <>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                    {renderTableCell(patient, 'clinic_name', 'arrival', patient.clinic_name)}
+                    {renderTableCell(patient, 'status_name', 'arrival', patient.status_name)}
                     <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_transport_type || '-'}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.departure_airport_code || '-'}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_city || '-'}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_flight_number || '-'}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_terminal || '-'}</td>
-                                         <td className="border-2 border-gray-400 px-4 py-2">{patient.passengers_count || '-'}</td>
-                     {renderEditableCell(patient, 'apartment_number', patient.apartment_number, undefined, 'arrival')}
-                     {renderEditableCell(patient, 'notes', patient.notes, undefined, 'arrival')}
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.passengers_count || '-'}</td>
+                    {renderEditableCell(patient, 'apartment_number', patient.apartment_number, undefined, 'arrival')}
+                    {renderEditableCell(patient, 'notes', patient.notes, undefined, 'arrival')}
                   </>
                 )}
                 
@@ -682,13 +704,13 @@ export function PatientTableDesktop({
                 {visibleFieldGroups.includes('departure') && (
                   <>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                    {renderTableCell(patient, 'clinic_name', 'departure', patient.clinic_name)}
+                    {renderTableCell(patient, 'status_name', 'departure', patient.status_name)}
                     <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
-                                         {renderEditableCell(patient, 'departure_datetime', patient.departure_datetime, formatDateTimeForEdit, 'departure')}
-                                         {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type, undefined, 'departure')}
-                     {renderEditableCell(patient, 'departure_city', patient.departure_city, undefined, 'departure')}
-                     {renderEditableCell(patient, 'departure_flight_number', patient.departure_flight_number, undefined, 'departure')}
+                    {renderEditableCell(patient, 'departure_datetime', patient.departure_datetime, formatDateTimeForEdit, 'departure')}
+                    {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type, undefined, 'departure')}
+                    {renderEditableCell(patient, 'departure_city', patient.departure_city, undefined, 'departure')}
+                    {renderEditableCell(patient, 'departure_flight_number', patient.departure_flight_number, undefined, 'departure')}
                     {renderEditableCell(patient, 'notes', patient.notes, undefined, 'departure')}
                   </>
                 )}
@@ -696,10 +718,10 @@ export function PatientTableDesktop({
                 {/* Treatment fields */}
                 {visibleFieldGroups.includes('treatment') && (
                   <>
-                                         <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                     {renderEditableCell(patient, 'apartment_number', patient.apartment_number, undefined, 'treatment')}
-                     <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
+                    {renderEditableCell(patient, 'apartment_number', patient.apartment_number, undefined, 'treatment')}
+                    {renderTableCell(patient, 'clinic_name', 'treatment', patient.clinic_name)}
+                    {renderTableCell(patient, 'status_name', 'treatment', patient.status_name)}
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_datetime ? format(parseISO(patient.arrival_datetime), 'dd.MM.yyyy', { locale: ru }) : '-'}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.departure_datetime)}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">
@@ -723,8 +745,8 @@ export function PatientTableDesktop({
                 {visibleFieldGroups.includes('visa') && (
                   <>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                    {renderTableCell(patient, 'clinic_name', 'visa', patient.clinic_name)}
+                    {renderTableCell(patient, 'status_name', 'visa', patient.status_name)}
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_type || '-'}</td>
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_days || '-'}</td>
                     {renderEditableCell(patient, 'china_entry_date', patient.china_entry_date, 

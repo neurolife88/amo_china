@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EditableNotesCell } from './EditableNotesCell';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface PatientCardsMobileProps {
   patients: PatientData[];
@@ -34,6 +35,7 @@ export function PatientCardsMobile({
 }: PatientCardsMobileProps) {
   const { toast } = useToast();
   const { cities } = useCities();
+  const permissions = usePermissions();
   const [openCards, setOpenCards] = useState<Set<number>>(new Set());
   const [editingField, setEditingField] = useState<{ dealId: number; field: string } | null>(null);
   const [editValue, setEditValue] = useState<string>('');
@@ -391,7 +393,9 @@ export function PatientCardsMobile({
               )}
             </div>
             <div className="text-sm text-muted-foreground">
-              {patient.clinic_name || 'Клиника не указана'}
+              {permissions.shouldShowField('clinic_name', 'basic') && (
+                <span>{patient.clinic_name || 'Клиника не указана'}</span>
+              )}
             </div>
           </CardHeader>
 
@@ -419,14 +423,18 @@ export function PatientCardsMobile({
                       <span className="text-muted-foreground">Страна:</span>
                       <div>{patient.deal_country || '-'}</div>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Клиника:</span>
-                      <div>{patient.clinic_name || '-'}</div>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Статус сделки:</span>
-                      <div>{patient.status_name || '-'}</div>
-                    </div>
+                    {permissions.shouldShowField('clinic_name', 'arrival') && (
+                      <div>
+                        <span className="text-muted-foreground">Клиника:</span>
+                        <div>{patient.clinic_name || '-'}</div>
+                      </div>
+                    )}
+                    {permissions.shouldShowField('status_name', 'arrival') && (
+                      <div>
+                        <span className="text-muted-foreground">Статус сделки:</span>
+                        <div>{patient.status_name || '-'}</div>
+                      </div>
+                    )}
                     <div>
                       <span className="text-muted-foreground">Дата и время прибытия:</span>
                       <div>{formatDate(patient.arrival_datetime)}</div>
@@ -484,14 +492,18 @@ export function PatientCardsMobile({
                    <span className="font-medium text-sm">Лечение</span>
                  </div>
                  <div className="grid grid-cols-1 gap-2 text-sm">
-                   <div>
-                     <span className="text-muted-foreground">Статус:</span>
-                     <div>{patient.status_name || '-'}</div>
-                   </div>
-                   <div>
-                     <span className="text-muted-foreground">Клиника:</span>
-                     <div>{patient.clinic_name || '-'}</div>
-                   </div>
+                   {permissions.shouldShowField('status_name', 'treatment') && (
+                     <div>
+                       <span className="text-muted-foreground">Статус:</span>
+                       <div>{patient.status_name || '-'}</div>
+                     </div>
+                   )}
+                   {permissions.shouldShowField('clinic_name', 'treatment') && (
+                     <div>
+                       <span className="text-muted-foreground">Клиника:</span>
+                       <div>{patient.clinic_name || '-'}</div>
+                     </div>
+                   )}
                    <div>
                      <span className="text-muted-foreground">Дата начала:</span>
                      <div>{formatDate(patient.arrival_datetime)}</div>

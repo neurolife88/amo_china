@@ -6,6 +6,7 @@
  */
 
 import { AppRole } from '@/types/auth';
+import { FieldGroup } from '@/types/patient';
 
 // =============================================================================
 // ОПРЕДЕЛЕНИЕ РОЛЕЙ И ИХ ИЕРАРХИИ
@@ -218,6 +219,35 @@ export function canViewPatients(
   return false;
 }
 
+/**
+ * Проверяет, должно ли поле быть видимым для определенной роли
+ */
+export function shouldShowFieldForRole(
+  fieldName: string, 
+  userRole: AppRole, 
+  fieldGroup: FieldGroup
+): boolean {
+  // Поля, которые должны быть скрыты для координатора
+  const hiddenFieldsForCoordinatorInGroups = {
+    basic: ['clinic_name', 'status_name'],
+    arrival: ['clinic_name', 'status_name'],
+    departure: ['clinic_name', 'status_name'],
+    treatment: ['clinic_name', 'status_name'],
+    visa: ['clinic_name', 'status_name'],
+    personal: ['clinic_name', 'status_name']
+  };
+
+  // Если пользователь - координатор и поле в списке скрытых
+  if (userRole === ROLES.COORDINATOR) {
+    const hiddenFields = hiddenFieldsForCoordinatorInGroups[fieldGroup] || [];
+    if (hiddenFields.includes(fieldName)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 // =============================================================================
 // ВСПОМОГАТЕЛЬНЫЕ ТИПЫ
 // =============================================================================
@@ -259,4 +289,11 @@ export class PermissionChecker {
   hasRole(role: AppRole): boolean {
     return hasRoleLevel(this.user.role, role);
   }
+
+  shouldShowField(fieldName: string, fieldGroup: FieldGroup): boolean {
+    return shouldShowFieldForRole(fieldName, this.user.role, fieldGroup);
+  }
 }
+
+// Экспортируем тип FieldGroup
+export type { FieldGroup };
