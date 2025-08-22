@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { supabase } from '@/integrations/supabase/client';
 
 export function LoginForm() {
@@ -43,7 +44,10 @@ export function LoginForm() {
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
+      <CardHeader className="text-center">
+        <div className="flex justify-center mb-4">
+          <ClinicLogo className="w-32 h-32" />
+        </div>
         <CardTitle>Вход в систему</CardTitle>
         <CardDescription>
           Введите свои учетные данные для доступа к системе управления пациентами

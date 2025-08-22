@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EditableNotesCell } from './EditableNotesCell';
+import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { usePermissions } from '@/hooks/usePermissions';
 
 interface PatientCardsMobileProps {
@@ -393,9 +394,12 @@ export function PatientCardsMobile({
               )}
             </div>
             <div className="text-sm text-muted-foreground">
-              {permissions.shouldShowField('clinic_name', 'basic') && (
-                <span>{patient.clinic_name || 'Клиника не указана'}</span>
-              )}
+                             {permissions.shouldShowField('clinic_name', 'basic') && (
+                 <div className="flex items-center space-x-2">
+                   <ClinicLogo clinicName={patient.clinic_name} className="w-8 h-8" />
+                   <span>{patient.clinic_name || 'Клиника не указана'}</span>
+                 </div>
+               )}
             </div>
           </CardHeader>
 
@@ -423,12 +427,15 @@ export function PatientCardsMobile({
                       <span className="text-muted-foreground">Страна:</span>
                       <div>{patient.deal_country || '-'}</div>
                     </div>
-                    {permissions.shouldShowField('clinic_name', 'arrival') && (
-                      <div>
-                        <span className="text-muted-foreground">Клиника:</span>
-                        <div>{patient.clinic_name || '-'}</div>
-                      </div>
-                    )}
+                                         {permissions.shouldShowField('clinic_name', 'arrival') && (
+                       <div>
+                         <span className="text-muted-foreground">Клиника:</span>
+                         <div className="flex items-center space-x-2">
+                           <ClinicLogo clinicName={patient.clinic_name} className="w-8 h-8" />
+                           <span>{patient.clinic_name || '-'}</span>
+                         </div>
+                       </div>
+                     )}
                     {permissions.shouldShowField('status_name', 'arrival') && (
                       <div>
                         <span className="text-muted-foreground">Статус сделки:</span>

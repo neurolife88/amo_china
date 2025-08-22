@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, Users, Hospital, Shield, Home } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { UserAvatar } from '@/components/common/UserAvatar';
+import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { EmailVerificationAlert } from '@/components/auth/EmailVerificationAlert';
 import Version from '@/components/Version';
 
@@ -80,7 +81,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Hospital className="h-8 w-8 text-primary" />
+            <ClinicLogo clinicName={profile.clinic_name} className="h-16 w-16" />
             <div>
               <div className="flex items-center space-x-3">
                 <h1 className="text-xl font-bold text-foreground">амосрм</h1>
