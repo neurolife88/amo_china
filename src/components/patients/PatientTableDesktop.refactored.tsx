@@ -558,7 +558,7 @@ export function PatientTableDesktop({
         <thead>
           <tr className="bg-gray-50">
             {renderTableHeader('patient_full_name', 'Пациент', 'basic', {width: '49px', minWidth: '49px', maxWidth: '49px'})}
-            {renderTableHeader('patient_chinese_name', '中文名字', 'basic', {width: '38px', minWidth: '38px', maxWidth: '38px'})}
+            {renderTableHeader('patient_chinese_name', '中文名字', 'basic', {width: '114px', minWidth: '114px', maxWidth: '114px'})}
             
             {/* Basic fields */}
             {visibleFieldGroups.includes('basic') && (

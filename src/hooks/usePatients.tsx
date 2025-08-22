@@ -17,13 +17,12 @@ export function usePatients() {
     setError(null);
     
     try {
-      // Используем прямое обращение к представлению
+      // Используем RPC функцию вместо view
       const { data: allData, error: fetchError } = await supabase
-        .from('super_admin_master_view')
-        .select('*');
+        .rpc('get_patients_data');
         
       if (fetchError) {
-        console.error('View query error:', fetchError);
+        console.error('RPC query error:', fetchError);
         throw new Error(`Ошибка загрузки данных: ${fetchError.message}`);
       }
 
@@ -298,13 +297,26 @@ export function usePatients() {
       if (Object.keys(returnTicketsUpdates).length > 0 || updates.departure_transport_type) {
         try {
           // Используем RPC функцию с правами суперпользователя
-          const { data, error: returnTicketsError } = await supabase.rpc('update_departure_tickets', {
-            p_deal_id: dealId,
-            p_departure_transport_type: updates.departure_transport_type || returnTicketsUpdates.return_transport_type || null,
-            p_departure_city: returnTicketsUpdates.departure_city || null,
-            p_departure_datetime: returnTicketsUpdates.departure_datetime || null,
-            p_departure_flight_number: returnTicketsUpdates.departure_flight_number || null
-          });
+          // Передаем только те поля, которые действительно обновляются
+          const rpcParams: any = {
+            p_deal_id: dealId
+          };
+          
+          // Добавляем только те поля, которые есть в updates
+          if (updates.departure_transport_type !== undefined) {
+            rpcParams.p_departure_transport_type = updates.departure_transport_type;
+          }
+          if (returnTicketsUpdates.departure_city !== undefined) {
+            rpcParams.p_departure_city = returnTicketsUpdates.departure_city;
+          }
+          if (returnTicketsUpdates.departure_datetime !== undefined) {
+            rpcParams.p_departure_datetime = returnTicketsUpdates.departure_datetime;
+          }
+          if (returnTicketsUpdates.departure_flight_number !== undefined) {
+            rpcParams.p_departure_flight_number = returnTicketsUpdates.departure_flight_number;
+          }
+          
+          const { data, error: returnTicketsError } = await supabase.rpc('update_departure_tickets', rpcParams);
 
           if (returnTicketsError) {
             console.error('Return tickets RPC error:', returnTicketsError);

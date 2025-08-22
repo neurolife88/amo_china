@@ -158,7 +158,7 @@ export function PatientTableDesktop({
       
       const propertyName = fieldMapping[field];
       if (propertyName) {
-        if (field === 'departure_datetime' && editValue) {
+        if (field === 'departure_datetime' && editValue && editValue.trim() !== '') {
           // Сохраняем время как есть, без конвертации в UTC
           try {
             const date = new Date(editValue);
@@ -174,6 +174,7 @@ export function PatientTableDesktop({
             (updates as any)[propertyName] = editValue;
           }
         } else {
+          // Сохраняем значение как есть (включая пустые строки)
           (updates as any)[propertyName] = editValue;
         }
       }
@@ -181,6 +182,7 @@ export function PatientTableDesktop({
       console.log('Saving edit for dealId:', dealId, 'field:', field, 'value:', editValue);
       await onPatientUpdate(dealId, updates);
       setEditingField(null);
+      setEditValue(''); // Очищаем значение после сохранения
       toast({
         title: "Успешно обновлено",
         description: "Данные пациента обновлены",
@@ -212,13 +214,16 @@ export function PatientTableDesktop({
       'departure_datetime',
       'departure_flight_number',
       'departure_transport_type',
+      'patient_chinese_name',
       'notes',
       'china_entry_date' 
     ];
     
-    // Китайское имя можно редактировать только в закладке "На лечении"
+    // Китайское имя можно редактировать в закладке "На лечении", "Прибытие" или "Все"
     if (field === 'patient_chinese_name') {
-      return (userRole === 'coordinator' || userRole === 'super_admin') && fieldGroup === 'treatment';
+      const canEditResult = (userRole === 'coordinator' || userRole === 'super_admin') && 
+             (fieldGroup === 'treatment' || fieldGroup === 'arrival' || fieldGroup === 'basic');
+      return canEditResult;
     }
     
     // Примечания могут редактировать все роли
@@ -688,7 +693,7 @@ export function PatientTableDesktop({
       <div className="rounded-md border">
         <style>{`
           .force-narrow-cols th:nth-child(1) { width: 49px !important; min-width: 49px !important; max-width: 49px !important; }
-          .force-narrow-cols th:nth-child(2) { width: 38px !important; min-width: 38px !important; max-width: 38px !important; }
+          .force-narrow-cols th:nth-child(2) { width: 114px !important; min-width: 114px !important; max-width: 114px !important; }
           .force-narrow-cols .treatment-col-1 { width: 25px !important; min-width: 25px !important; max-width: 25px !important; }
           .force-narrow-cols .treatment-col-2 { width: 14px !important; min-width: 14px !important; max-width: 14px !important; }
           .force-narrow-cols .treatment-col-3 { width: 32px !important; min-width: 32px !important; max-width: 32px !important; }
@@ -701,14 +706,18 @@ export function PatientTableDesktop({
           <tr className="bg-gray-50">
             {/* Пациент всегда отображается */}
             <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '49px', minWidth: '49px', maxWidth: '49px'}}>Пациент</th>
-            <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '38px', minWidth: '38px', maxWidth: '38px'}}>中文名字</th>
+            <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
             
             {/* Basic fields */}
             {visibleFieldGroups.includes('basic') && (
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Клиника</th>
+                )}
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                )}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Дата и время прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Транспорт</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Рейс</th>
@@ -726,8 +735,12 @@ export function PatientTableDesktop({
             {visibleFieldGroups.includes('arrival') && (
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                )}
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                )}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '75px', minWidth: '75px', maxWidth: '75px'}}>Транспорт</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>Код аэропорта</th>
@@ -744,8 +757,12 @@ export function PatientTableDesktop({
             {visibleFieldGroups.includes('departure') && (
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                )}
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                )}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время убытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Транспорт</th>
@@ -760,8 +777,12 @@ export function PatientTableDesktop({
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-1" style={{width: '25px', minWidth: '25px', maxWidth: '25px'}}>Страна</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-2" style={{width: '14px', minWidth: '14px', maxWidth: '14px'}}>Номер квартиры</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-3" style={{width: '32px', minWidth: '32px', maxWidth: '32px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-3" style={{width: '32px', minWidth: '32px', maxWidth: '32px'}}>Клиника</th>
+                )}
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                )}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата убытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '50px'}}>Виза истекает</th>
@@ -774,8 +795,12 @@ export function PatientTableDesktop({
             {visibleFieldGroups.includes('visa') && (
               <>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                )}
+                {userRole !== 'coordinator' && (
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                )}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Тип визы</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Количество дней в визе</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Дата въезда в Китай</th>
@@ -808,21 +833,22 @@ export function PatientTableDesktop({
               <td className="border-2 border-gray-400 px-4 py-2 font-medium">
                 {patient.patient_full_name || '-'}
               </td>
-              {/* Китайское имя - редактируемое только в treatment */}
-              {visibleFieldGroups.includes('treatment') ? (
-                renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'treatment')
-              ) : (
-                <td className="border-2 border-gray-400 px-4 py-2">
-                  {patient.patient_chinese_name || '-'}
-                </td>
-              )}
+              {/* Китайское имя - редактируемое через renderEditableCell */}
+              {(() => {
+                const fieldGroup = visibleFieldGroups.includes('treatment') ? 'treatment' : visibleFieldGroups.includes('arrival') ? 'arrival' : 'basic';
+                return renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, fieldGroup);
+              })()}
               
               {/* Basic fields */}
               {visibleFieldGroups.includes('basic') && (
                 <>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  )}
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  )}
                   <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_transport_type || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_flight_number || '-'}</td>
@@ -842,8 +868,12 @@ export function PatientTableDesktop({
               {visibleFieldGroups.includes('arrival') && (
                 <>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  )}
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  )}
                   <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_transport_type || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.departure_airport_code || '-'}</td>
@@ -860,8 +890,12 @@ export function PatientTableDesktop({
               {visibleFieldGroups.includes('departure') && (
                 <>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  )}
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  )}
                   <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
                   {renderEditableCell(patient, 'departure_datetime', patient.departure_datetime, formatDateTimeForEdit)}
                   {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type)}
@@ -876,8 +910,12 @@ export function PatientTableDesktop({
                 <>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
                   {renderEditableCell(patient, 'apartment_number', patient.apartment_number)}
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  )}
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  )}
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_datetime ? format(parseISO(patient.arrival_datetime), 'dd.MM.yyyy', { locale: ru }) : '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.departure_datetime)}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">
@@ -901,8 +939,12 @@ export function PatientTableDesktop({
               {visibleFieldGroups.includes('visa') && (
                 <>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.deal_country || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.clinic_name || '-'}</td>
+                  )}
+                  {userRole !== 'coordinator' && (
+                    <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
+                  )}
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_type || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_days || '-'}</td>
                   {renderEditableCell(patient, 'china_entry_date', patient.china_entry_date, 

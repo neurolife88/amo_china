@@ -39,8 +39,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             <div className="flex items-center space-x-4">
               <Hospital className="h-8 w-8 text-primary" />
               <div>
-                <h1 className="text-xl font-bold text-foreground">амосрм</h1>
-                <p className="text-sm text-muted-foreground">Система управления пациентами</p>
+                <h1 className="text-xl font-bold text-foreground">CRM</h1>
+                <Version />
               </div>
             </div>
             
@@ -84,27 +84,20 @@ export function AppLayout({ children }: AppLayoutProps) {
             <ClinicLogo clinicName={profile.clinic_name} className="h-16 w-16" />
             <div>
               <div className="flex items-center space-x-3">
-                <h1 className="text-xl font-bold text-foreground">амосрм</h1>
+                <h1 className="text-xl font-bold text-foreground">CRM</h1>
                 <Version />
               </div>
-              <p className="text-sm text-muted-foreground">Система управления пациентами</p>
+              
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
-            {profile.clinic_name && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Клиника:</span>{' '}
-                <span className="font-medium text-foreground">{profile.clinic_name}</span>
-              </div>
-            )}
-            
             <div className="flex items-center space-x-3">
               <UserAvatar user={profile} size="sm" />
               <div className="text-sm">
                 <div className="font-medium text-foreground">{profile.full_name || profile.email}</div>
                 <div className="text-muted-foreground capitalize">
-                  {profile.role === 'super_admin' ? 'Супер Админ' : 
+                    {profile.role === 'super_admin' ? 'Супер Админ' : 
                    profile.role === 'director' ? 'Директор' : 'Координатор'}
                 </div>
               </div>

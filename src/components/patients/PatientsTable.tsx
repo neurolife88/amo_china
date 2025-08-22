@@ -1,9 +1,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { usePatients } from '@/hooks/usePatients';
-import { PatientFilters, FieldGroup } from '@/types/patient';
+import { PatientFilters, FieldGroup, PatientData } from '@/types/patient';
 import { FilterPanel } from './FilterPanel';
-import { PatientTableDesktop } from './PatientTableDesktop.refactored';
+import { PatientTableDesktop } from './PatientTableDesktop';
 import { PatientCardsMobile } from './PatientCardsMobile';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,7 +20,10 @@ export function PatientsTable() {
     search: ''
   });
 
-  const [visibleFieldGroups, setVisibleFieldGroups] = useState<FieldGroup[]>(['basic']);
+  const [visibleFieldGroups, setVisibleFieldGroups] = useState<FieldGroup[]>(() => {
+    // Для координатора по умолчанию показываем "Прибытие", для остальных - "ВСЕ"
+    return permissions.isCoordinator ? ['arrival'] : ['basic'];
+  });
 
   // Check for mobile view
   useEffect(() => {
@@ -36,10 +39,10 @@ export function PatientsTable() {
   // Load patients when filters change
   useEffect(() => {
     if (permissions.userRole) {
-      const currentFieldGroup = visibleFieldGroups[0] || 'basic';
+      const currentFieldGroup = visibleFieldGroups[0] || (permissions.isCoordinator ? 'arrival' : 'basic');
       loadPatients({ ...filters, fieldGroup: currentFieldGroup });
     }
-  }, [filters, permissions.userRole, loadPatients, visibleFieldGroups]);
+  }, [filters, permissions.userRole, permissions.isCoordinator, loadPatients, visibleFieldGroups]);
 
   const handleFilterChange = (newFilters: PatientFilters) => {
     setFilters(newFilters);
@@ -148,7 +151,7 @@ export function PatientsTable() {
       await updatePatient(dealId, updates);
       
       // Перезагружаем с текущими фильтрами
-      const currentFieldGroup = visibleFieldGroups[0] || 'basic';
+      const currentFieldGroup = visibleFieldGroups[0] || (permissions.isCoordinator ? 'arrival' : 'basic');
       await loadPatients({ ...filters, fieldGroup: currentFieldGroup });
     } catch (error) {
       // Ошибка уже обрабатывается в updatePatient
@@ -171,12 +174,7 @@ export function PatientsTable() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-foreground">Управление пациентами</h1>
-        <p className="text-muted-foreground">
-          {permissions.isCoordinator 
-            ? `Клиника: ${permissions.userClinic}` 
-            : 'Все клиники'}
-        </p>
+        <h1 className="text-2xl font-bold text-foreground">Клиника: {permissions.userClinic}</h1>
       </div>
 
       {/* Filters */}
@@ -198,7 +196,7 @@ export function PatientsTable() {
                 p.status_name === 'обратные билеты с лечения' ||
                 p.status_name === 'квартира заказана'
               ).length,
-              enabled: true 
+              enabled: !permissions.isCoordinator // Скрываем для координатора
             },
             { 
               key: 'arrival', 
@@ -309,6 +307,7 @@ export function PatientsTable() {
               patients={sortedPatients} 
               visibleFieldGroups={visibleFieldGroups}
               onPatientUpdate={handlePatientUpdate}
+              userRole={permissions.userRole!}
             />
           )}
           

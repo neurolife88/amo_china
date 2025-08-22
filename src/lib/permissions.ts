@@ -176,9 +176,9 @@ export function canEditField(
       return hasPermission(userRole, PERMISSIONS.EDIT_CHINA_ENTRY_DATE);
       
     case 'patient_chinese_name':
-      // Специальная логика: только в группе "treatment"
+      // Специальная логика: только в группе "treatment", "arrival" или "basic"
       return hasPermission(userRole, PERMISSIONS.EDIT_CHINESE_NAME) && 
-             fieldGroup === 'treatment';
+             (fieldGroup === 'treatment' || fieldGroup === 'arrival' || fieldGroup === 'basic');
              
     default:
       return hasPermission(userRole, PERMISSIONS.EDIT_PATIENT_BASIC);
