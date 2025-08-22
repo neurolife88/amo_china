@@ -16,6 +16,12 @@ export function usePatients() {
     setLoading(true);
     setError(null);
     
+    console.log('🔍 loadPatients called with:', { 
+      filters, 
+      userRole: profile.role, 
+      userClinic: profile.clinic_name 
+    });
+    
     try {
       // Используем прямое обращение к представлению
       const { data: allData, error: fetchError } = await supabase
@@ -27,10 +33,20 @@ export function usePatients() {
         throw new Error(`Ошибка загрузки данных: ${fetchError.message}`);
       }
 
+      console.log('🔍 Total patients from database:', allData?.length || 0);
+      
       let filteredData = allData || [];
       
-      // Apply client-side filters (только дополнительные фильтры)
-      if (filters.clinic && profile.role !== 'coordinator') {
+      // Apply clinic filtering based on user role
+      if (profile.role === 'coordinator' && profile.clinic_name) {
+        // Coordinator sees only patients from their assigned clinic
+        const beforeFilter = filteredData.length;
+        filteredData = filteredData.filter((patient: any) => 
+          patient.clinic_name === profile.clinic_name
+        );
+        console.log(`🔍 Coordinator filtering: ${beforeFilter} -> ${filteredData.length} patients for clinic "${profile.clinic_name}"`);
+      } else if (filters.clinic && profile.role !== 'coordinator') {
+        // Other roles can filter by clinic if specified
         filteredData = filteredData.filter((patient: any) => 
           patient.clinic_name === filters.clinic
         );
