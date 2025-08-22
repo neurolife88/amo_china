@@ -6,6 +6,9 @@
  */
 
 import { AppRole } from '@/types/auth';
+import { FieldGroup } from '@/types/patient'; // Импортируем и экспортируем FieldGroup
+
+export type { FieldGroup }; // Экспортируем FieldGroup как тип
 
 // =============================================================================
 // ОПРЕДЕЛЕНИЕ РОЛЕЙ И ИХ ИЕРАРХИИ
@@ -140,19 +143,6 @@ export function canEditField(
 ): boolean {
   const { fieldGroup, userClinic, patientClinic } = context || {};
   
-  // Отладочная информация для поля notes
-  if (field === 'notes') {
-    console.log('🔍 canEditField notes debug:', {
-      userRole,
-      fieldGroup,
-      userClinic,
-      patientClinic,
-      hasPermission: hasPermission(userRole, PERMISSIONS.EDIT_NOTES),
-      isCoordinator: userRole === ROLES.COORDINATOR,
-      clinicMatch: userClinic === patientClinic
-    });
-  }
-  
   // Проверка доступа к клинике (для coordinator)
   if (userRole === ROLES.COORDINATOR && userClinic && patientClinic) {
     if (userClinic !== patientClinic) {
@@ -198,6 +188,40 @@ export function canEditField(
 }
 
 /**
+ * Проверяет, должен ли пользователь видеть определенное поле в таблице
+ * Координатору скрываем некоторые поля.
+ */
+export function shouldShowFieldForRole(
+  fieldName: string,
+  userRole: AppRole,
+  fieldGroup: FieldGroup
+): boolean {
+  // Super admin и director видят все поля
+  if (userRole === ROLES.SUPER_ADMIN || userRole === ROLES.DIRECTOR) {
+    return true;
+  }
+
+  // Для координатора скрываем определенные поля
+  if (userRole === ROLES.COORDINATOR) {
+    const hiddenFieldsForCoordinatorInGroups: Record<FieldGroup, string[]> = {
+      basic: ['status_name', 'clinic_name'],
+      arrival: ['clinic_name', 'status_name'],
+      departure: ['clinic_name', 'status_name'],
+      treatment: ['clinic_name', 'status_name'],
+      visa: [],
+      personal: [] // Personal видят все роли, как мы договорились
+    };
+
+    const hiddenFields = hiddenFieldsForCoordinatorInGroups[fieldGroup];
+    if (hiddenFields && hiddenFields.includes(fieldName)) {
+      return false;
+    }
+  }
+
+  return true; // Показываем по умолчанию, если нет явного запрета
+}
+
+/**
  * Проверяет, может ли пользователь видеть данные пациентов
  */
 export function canViewPatients(
@@ -229,7 +253,7 @@ export interface UserContext {
 }
 
 export interface PermissionContext {
-  fieldGroup?: string;
+  fieldGroup?: FieldGroup;
   targetClinic?: string;
   targetUserId?: string;
 }
@@ -255,7 +279,11 @@ export class PermissionChecker {
   canView(targetClinic?: string): boolean {
     return canViewPatients(this.user.role, this.user.clinic, targetClinic);
   }
-  
+
+  shouldShowField(fieldName: string, fieldGroup: FieldGroup): boolean {
+    return shouldShowFieldForRole(fieldName, this.user.role, fieldGroup);
+  }
+
   hasRole(role: AppRole): boolean {
     return hasRoleLevel(this.user.role, role);
   }

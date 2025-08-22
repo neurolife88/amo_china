@@ -15,7 +15,8 @@ import {
   canEditField,
   canViewPatients,
   hasPermission,
-  hasRoleLevel
+  hasRoleLevel,
+  FieldGroup
 } from '@/lib/permissions';
 import type { AppRole } from '@/types/auth';
 
@@ -25,6 +26,7 @@ export interface UsePermissionsReturn {
   canEdit: (field: string, context?: { fieldGroup?: string; targetClinic?: string }) => boolean;
   canView: (targetClinic?: string) => boolean;
   hasRole: (role: AppRole) => boolean;
+  shouldShowField: (fieldName: string, fieldGroup: FieldGroup) => boolean; // Новое поле
   
   // Checker instance для сложных проверок
   checker: PermissionChecker | null;
@@ -103,12 +105,18 @@ export function usePermissions(): UsePermissionsReturn {
     return hasRoleLevel(profile.role, role);
   };
   
+  const shouldShowField = (fieldName: string, fieldGroup: FieldGroup): boolean => {
+    if (!profile) return false;
+    return checker?.shouldShowField(fieldName, fieldGroup) || false;
+  };
+  
   return {
     // Основные функции
     can,
     canEdit,
     canView,
     hasRole,
+    shouldShowField, // Экспортируем новую функцию
     checker,
     
     // Быстрые проверки
@@ -187,20 +195,6 @@ export function PermissionGate({
   
   if (field) {
     hasAccess = hasAccess && canEdit(field, fieldContext);
-  }
-  
-  // Отладочная информация для поля notes
-  if (field === 'notes') {
-    console.log('🔍 PermissionGate notes debug:', {
-      permission,
-      role,
-      field,
-      fieldContext,
-      hasAccess,
-      canPermission: permission ? can(permission) : true,
-      canRole: role ? hasRole(role) : true,
-      canEditField: field ? canEdit(field, fieldContext) : true
-    });
   }
   
   return hasAccess ? <>{children}</> : <>{fallback}</>;
