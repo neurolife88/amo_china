@@ -19,7 +19,6 @@ import {
   FieldGroup
 } from '@/lib/permissions';
 import type { AppRole } from '@/types/auth';
-import { FieldGroup } from '@/types/patient';
 
 export interface UsePermissionsReturn {
   // Основные проверки
@@ -27,7 +26,7 @@ export interface UsePermissionsReturn {
   canEdit: (field: string, context?: { fieldGroup?: string; targetClinic?: string }) => boolean;
   canView: (targetClinic?: string) => boolean;
   hasRole: (role: AppRole) => boolean;
-  shouldShowField: (fieldName: string, fieldGroup: FieldGroup) => boolean; // Новое поле
+  shouldShowField: (fieldName: string, fieldGroup: FieldGroup) => boolean;
   
   // Checker instance для сложных проверок
   checker: PermissionChecker | null;
@@ -44,8 +43,6 @@ export interface UsePermissionsReturn {
   
   // Состояние загрузки
   loading: boolean;
-
-  shouldShowField: (fieldName: string, fieldGroup: FieldGroup) => boolean;
 }
 
 /**
@@ -114,6 +111,9 @@ export function usePermissions(): UsePermissionsReturn {
     canEdit,
     canView,
     hasRole,
+    
+    // Checker instance
+    checker,
     
     // Быстрые проверки
     ...quickChecks,

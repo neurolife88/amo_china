@@ -6,9 +6,7 @@
  */
 
 import { AppRole } from '@/types/auth';
-import { FieldGroup } from '@/types/patient';
-
-export type { FieldGroup };
+import type { FieldGroup } from '@/types/patient';
 
 // =============================================================================
 // ОПРЕДЕЛЕНИЕ РОЛЕЙ И ИХ ИЕРАРХИИ
@@ -187,39 +185,7 @@ export function canEditField(
   }
 }
 
-/**
- * Проверяет, должен ли пользователь видеть определенное поле в таблице
- * Координатору скрываем некоторые поля.
- */
-export function shouldShowFieldForRole(
-  fieldName: string,
-  userRole: AppRole,
-  fieldGroup: FieldGroup
-): boolean {
-  // Super admin и director видят все поля
-  if (userRole === ROLES.SUPER_ADMIN || userRole === ROLES.DIRECTOR) {
-    return true;
-  }
 
-  // Для координатора скрываем определенные поля
-  if (userRole === ROLES.COORDINATOR) {
-    const hiddenFieldsForCoordinatorInGroups: Record<FieldGroup, string[]> = {
-      basic: ['status_name', 'clinic_name'],
-      arrival: ['clinic_name', 'status_name'],
-      departure: ['clinic_name', 'status_name'],
-      treatment: ['clinic_name', 'status_name'],
-      visa: [],
-      personal: [] // Personal видят все роли, как мы договорились
-    };
-
-    const hiddenFields = hiddenFieldsForCoordinatorInGroups[fieldGroup];
-    if (hiddenFields && hiddenFields.includes(fieldName)) {
-      return false;
-    }
-  }
-
-  return true; // Показываем по умолчанию, если нет явного запрета
-}
 
 /**
  * Проверяет, может ли пользователь видеть данные пациентов
@@ -316,11 +282,4 @@ export class PermissionChecker {
   hasRole(role: AppRole): boolean {
     return hasRoleLevel(this.user.role, role);
   }
-
-  shouldShowField(fieldName: string, fieldGroup: FieldGroup): boolean {
-    return shouldShowFieldForRole(fieldName, this.user.role, fieldGroup);
-  }
 }
-
-// Экспортируем тип FieldGroup
-export type { FieldGroup };
