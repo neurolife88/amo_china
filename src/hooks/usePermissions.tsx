@@ -19,6 +19,7 @@ import {
   FieldGroup
 } from '@/lib/permissions';
 import type { AppRole } from '@/types/auth';
+import { FieldGroup } from '@/types/patient';
 
 export interface UsePermissionsReturn {
   // Основные проверки
@@ -43,6 +44,8 @@ export interface UsePermissionsReturn {
   
   // Состояние загрузки
   loading: boolean;
+
+  shouldShowField: (fieldName: string, fieldGroup: FieldGroup) => boolean;
 }
 
 /**
@@ -104,20 +107,13 @@ export function usePermissions(): UsePermissionsReturn {
     if (!profile) return false;
     return hasRoleLevel(profile.role, role);
   };
-  
-  const shouldShowField = (fieldName: string, fieldGroup: FieldGroup): boolean => {
-    if (!profile) return false;
-    return checker?.shouldShowField(fieldName, fieldGroup) || false;
-  };
-  
+
   return {
     // Основные функции
     can,
     canEdit,
     canView,
     hasRole,
-    shouldShowField, // Экспортируем новую функцию
-    checker,
     
     // Быстрые проверки
     ...quickChecks,
@@ -129,6 +125,9 @@ export function usePermissions(): UsePermissionsReturn {
     
     // Состояние
     loading,
+
+    shouldShowField: (fieldName: string, fieldGroup: FieldGroup) => 
+      checker?.shouldShowField(fieldName, fieldGroup) ?? true,
   };
 }
 
