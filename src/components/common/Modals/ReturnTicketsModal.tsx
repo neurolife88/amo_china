@@ -26,7 +26,6 @@ interface ReturnTicketsModalProps {
     departure_transport_type: string;
     departure_city: string;
     departure_datetime: Date | null;
-    departure_time: string;
     departure_flight_number: string;
   };
   onDataChange: (updates: Partial<ReturnTicketsModalProps['data']>) => void;
@@ -110,7 +109,7 @@ export function ReturnTicketsModal({
                   >
                     <Calendar className="mr-2 h-4 w-4" />
                     {data?.departure_datetime ? (
-                      format(data.departure_datetime, 'dd.MM.yyyy', { locale: ru })
+                      format(data.departure_datetime, 'dd.MM.yyyy HH:mm', { locale: ru })
                     ) : (
                       <span className="text-muted-foreground">Дата</span>
                     )}
@@ -120,15 +119,44 @@ export function ReturnTicketsModal({
                                   <CalendarComponent
                   mode="single"
                   selected={data?.departure_datetime || undefined}
-                  onSelect={(date) => onDataChange({ departure_datetime: date || null })}
+                  onSelect={(date) => {
+                    if (!date) {
+                      onDataChange({ departure_datetime: null });
+                      return;
+                    }
+                    const newDateTime = new Date(date);
+                    if (data?.departure_datetime) {
+                      newDateTime.setHours(data.departure_datetime.getHours());
+                      newDateTime.setMinutes(data.departure_datetime.getMinutes());
+                    } else {
+                      // Установить время по умолчанию, если дата устанавливается впервые
+                      newDateTime.setHours(12);
+                      newDateTime.setMinutes(0);
+                    }
+                    onDataChange({ departure_datetime: newDateTime });
+                  }}
                   initialFocus
                 />
                 </PopoverContent>
               </Popover>
               <Input
                 type="time"
-                value={data?.departure_time || '12:00'}
-                onChange={(e) => onDataChange({ departure_time: e.target.value })}
+                value={data?.departure_datetime ? format(data.departure_datetime, 'HH:mm') : '12:00'}
+                onChange={(e) => {
+                  const [hours, minutes] = e.target.value.split(':').map(Number);
+                  if (data?.departure_datetime) {
+                    const newDateTime = new Date(data.departure_datetime);
+                    newDateTime.setHours(hours);
+                    newDateTime.setMinutes(minutes);
+                    onDataChange({ departure_datetime: newDateTime });
+                  } else {
+                    // Если дата не выбрана, установить текущую дату с выбранным временем
+                    const newDateTime = new Date();
+                    newDateTime.setHours(hours);
+                    newDateTime.setMinutes(minutes);
+                    onDataChange({ departure_datetime: newDateTime });
+                  }
+                }}
                 className="w-32"
               />
             </div>

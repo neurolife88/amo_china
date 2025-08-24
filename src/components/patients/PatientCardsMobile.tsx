@@ -821,7 +821,7 @@ export function PatientCardsMobile({
                     >
                       <Calendar className="mr-2 h-4 w-4" />
                       {returnTicketsData.departure_datetime ? (
-                        format(returnTicketsData.departure_datetime, 'dd.MM.yyyy', { locale: ru })
+                        format(returnTicketsData.departure_datetime, 'dd.MM.yyyy HH:mm', { locale: ru })
                       ) : (
                         <span className="text-muted-foreground">Дата</span>
                       )}
@@ -830,12 +830,42 @@ export function PatientCardsMobile({
                   <PopoverContent className="w-auto p-0">
                     <CalendarComponent
                       mode="single"
-                      selected={returnTicketsData.departure_datetime}
-                      onSelect={(date) => setReturnTicketsData(prev => ({ ...prev, departure_datetime: date }))}
+                      selected={returnTicketsData.departure_datetime || undefined}
+                      onSelect={(date) => {
+                        if (!date) {
+                          setReturnTicketsData(prev => ({ ...prev, departure_datetime: null }));
+                          return;
+                        }
+                        setReturnTicketsData(prev => {
+                          const newDateTime = new Date(date);
+                          if (prev.departure_datetime) {
+                            newDateTime.setHours(prev.departure_datetime.getHours());
+                            newDateTime.setMinutes(prev.departure_datetime.getMinutes());
+                          } else {
+                            newDateTime.setHours(12);
+                            newDateTime.setMinutes(0);
+                          }
+                          return { ...prev, departure_datetime: newDateTime };
+                        });
+                      }}
                       initialFocus
                     />
                   </PopoverContent>
                 </Popover>
+                <Input
+                  type="time"
+                  value={returnTicketsData.departure_datetime ? format(returnTicketsData.departure_datetime, 'HH:mm') : '12:00'}
+                  onChange={(e) => {
+                    const [hours, minutes] = e.target.value.split(':').map(Number);
+                    setReturnTicketsData(prev => {
+                      const newDateTime = prev.departure_datetime ? new Date(prev.departure_datetime) : new Date();
+                      newDateTime.setHours(hours);
+                      newDateTime.setMinutes(minutes);
+                      return { ...prev, departure_datetime: newDateTime };
+                    });
+                  }}
+                  className="w-32"
+                />
               </div>
             </div>
 
