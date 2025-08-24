@@ -25,7 +25,6 @@ export function EditableNotesCell({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showEditIcon, setShowEditIcon] = useState(false);
 
   const handleOpenModal = () => {
     console.log('Opening modal with value:', value);
@@ -83,22 +82,14 @@ export function EditableNotesCell({
 
   return (
     <>
-      <div 
-        className="group relative"
-        onMouseEnter={() => setShowEditIcon(true)}
-        onMouseLeave={() => setShowEditIcon(false)}
-      >
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <ExpandableText text={value} maxLength={maxDisplayLength} />
-          </div>
-          {showEditIcon && (
-            <Edit2 
-              className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 cursor-pointer" 
-              onClick={handleOpenModal}
-            />
-          )}
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <ExpandableText text={value} maxLength={maxDisplayLength} />
         </div>
+        <Edit2 
+          className="h-4 w-4 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-full p-1 shadow-sm transition-all duration-200 hover:scale-110 cursor-pointer" 
+          onClick={handleOpenModal}
+        />
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

@@ -197,14 +197,15 @@ export function PatientCardsMobile({
     return (userRole === 'coordinator' || userRole === 'super_admin') && editableFields.includes(field);
   };
 
-  const renderEditableField = (patient: PatientData, field: string, value: string | null, label: string, formatValue?: (val: string | null) => string, fieldGroup?: string) => {
-    const displayValue = formatValue ? formatValue(value) : (value || '-');
-    const rawValue = value || '';
+  const renderEditableField = (patient: PatientData, field: string, label: string, fieldGroup: FieldGroup) => {
+    const rawValue = patient[field as keyof PatientData] as string;
+    const displayValue = rawValue || '-';
+    const canEditField = permissions.canEdit(field, { fieldGroup });
 
     if (isEditing(patient.deal_id, field)) {
       return (
-        <div>
-          {label && <span className="text-muted-foreground">{label}:</span>}
+        <div className="text-sm bg-blue-50/50 border border-blue-200/50 rounded-lg p-2">
+          <span className="text-muted-foreground">{label}:</span>
           <div className="flex items-center gap-2 mt-1">
             {field === 'departure_city' ? (
               <Select
@@ -255,17 +256,17 @@ export function PatientCardsMobile({
               size="sm"
               variant="ghost"
               onClick={() => saveEdit(patient.deal_id, field)}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 bg-green-100 hover:bg-green-200 text-green-600 hover:text-green-700 rounded-full shadow-sm transition-all duration-200 hover:scale-110"
             >
-              <Check className="h-3 w-3" />
+              <Check className="h-4 w-4" />
             </Button>
             <Button
               size="sm"
               variant="ghost"
               onClick={cancelEdit}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 rounded-full shadow-sm transition-all duration-200 hover:scale-110"
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -273,18 +274,20 @@ export function PatientCardsMobile({
     }
 
     return (
-      <div>
-        {label && <span className="text-muted-foreground">{label}:</span>}
-        <div className="flex items-center justify-between group">
-          <span>{displayValue}</span>
-          {canEdit(field, fieldGroup) && (
+      <div className={`text-sm ${canEditField ? 'group relative bg-blue-50/50 border border-blue-200/50 rounded-lg p-2 hover:bg-blue-100/50 transition-colors' : ''}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <span className="text-muted-foreground">{label}:</span>
+            <div className="font-medium">{displayValue}</div>
+          </div>
+          {canEditField && (
             <Button
               size="sm"
               variant="ghost"
               onClick={() => startEditing(patient.deal_id, field, rawValue)}
-              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="h-8 w-8 p-0 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-full shadow-sm transition-all duration-200 hover:scale-110"
             >
-              <Edit2 className="h-3 w-3" />
+              <Edit2 className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -427,7 +430,7 @@ export function PatientCardsMobile({
                 <User className="h-4 w-4" />
                 <span>{patient.patient_full_name || 'Без имени'}</span>
               </CardTitle>
-              <div className="text-base text-muted-foreground font-normal group relative flex items-center space-x-1">
+              <div className={`text-base text-muted-foreground font-normal group relative flex items-center space-x-1 ${permissions.canEdit('patient_chinese_name', { fieldGroup: 'basic' }) ? 'bg-blue-50/50 border border-blue-200/50 rounded-lg p-2 hover:bg-blue-100/50 transition-colors' : ''}`}>
                 {editingChineseName === patient.deal_id ? (
                   <div className="flex items-center space-x-1">
                     <Input
@@ -456,14 +459,14 @@ export function PatientCardsMobile({
                 ) : (
                   <>
                     <span>{patient.patient_chinese_name || '-'}</span>
-                    {canEdit('patient_chinese_name') && (
+                    {permissions.canEdit('patient_chinese_name', { fieldGroup: 'basic' }) && (
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => startEditingChineseName(patient.deal_id, patient.patient_chinese_name || '')}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                        className="h-8 w-8 p-0 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-full shadow-sm transition-all duration-200 hover:scale-110"
                       >
-                        <Edit2 className="h-3 w-3" />
+                        <Edit2 className="h-4 w-4" />
                       </Button>
                     )}
                   </>
@@ -547,11 +550,11 @@ export function PatientCardsMobile({
                         <span className="text-muted-foreground">Количество пассажиров:</span>
                         <div>{patient.passengers_count || '-'}</div>
                       </div>
-                      {renderEditableField(patient, 'apartment_number', patient.apartment_number, 'Квартира')}
+                      {renderEditableField(patient, 'apartment_number', 'Квартира', 'arrival')}
                     </div>
                     
                     {/* Примечание внутри выпадающего списка */}
-                    <div className="pt-2 border-t">
+                    <div className={`pt-2 border-t ${permissions.canEdit('notes', { fieldGroup: 'arrival' }) ? 'bg-blue-50/50 border border-blue-200/50 rounded-lg p-2 hover:bg-blue-100/50 transition-colors' : ''}`}>
                       <div className="flex items-center space-x-2">
                         <FileText className="h-4 w-4 text-gray-600" />
                         <span className="font-medium text-sm">Примечание</span>
@@ -569,7 +572,7 @@ export function PatientCardsMobile({
                         patientName={patient.patient_full_name}
                         patientChineseName={patient.patient_chinese_name}
                         maxDisplayLength={10}
-                        canEdit={canEdit('notes', visibleFieldGroups[0])}
+                        canEdit={permissions.canEdit('notes', { fieldGroup: 'arrival' })}
                       />
                     </div>
                   </CollapsibleContent>
@@ -585,9 +588,9 @@ export function PatientCardsMobile({
                    <span className="font-medium text-sm">Обратные билеты</span>
                  </div>
                   <div className="grid grid-cols-1 gap-2 text-sm">
-                    {renderEditableField(patient, 'departure_datetime', patient.departure_datetime, 'Дата', formatDate)}
-                    {renderEditableField(patient, 'departure_city', patient.departure_city, 'Город')}
-                    {renderEditableField(patient, 'departure_flight_number', patient.departure_flight_number, 'Рейс')}
+                    {renderEditableField(patient, 'departure_datetime', 'Дата', 'departure')}
+                    {renderEditableField(patient, 'departure_city', 'Город', 'departure')}
+                    {renderEditableField(patient, 'departure_flight_number', 'Рейс', 'departure')}
                   </div>
                </div>
              )}
@@ -619,7 +622,7 @@ export function PatientCardsMobile({
                    <div>
                      <span className="text-muted-foreground">Квартира: </span>
                      <span className="inline-flex items-center space-x-1">
-                       {renderEditableField(patient, 'apartment_number', patient.apartment_number, '', undefined, 'treatment')}
+                       {renderEditableField(patient, 'apartment_number', 'Квартира', 'treatment')}
                      </span>
                    </div>
                  </div>
@@ -735,7 +738,7 @@ export function PatientCardsMobile({
             {(visibleFieldGroups.includes('basic') || 
               visibleFieldGroups.includes('treatment') || 
               visibleFieldGroups.includes('departure')) && (
-              <div className="p-2 rounded bg-gray-50 dark:bg-gray-950/20 space-y-2">
+              <div className={`p-2 rounded space-y-2 ${permissions.canEdit('notes', { fieldGroup: 'basic' }) ? 'bg-blue-50/50 border border-blue-200/50 hover:bg-blue-100/50 transition-colors' : 'bg-gray-50 dark:bg-gray-950/20'}`}>
                 <div className="flex items-center space-x-2">
                   <FileText className="h-4 w-4 text-gray-600" />
                   <span className="font-medium text-sm">Примечание</span>
@@ -753,7 +756,7 @@ export function PatientCardsMobile({
                   patientName={patient.patient_full_name}
                   patientChineseName={patient.patient_chinese_name}
                   maxDisplayLength={10}
-                  canEdit={canEdit('notes', visibleFieldGroups[0])}
+                  canEdit={permissions.canEdit('notes', { fieldGroup: 'basic' })}
                 />
               </div>
             )}
