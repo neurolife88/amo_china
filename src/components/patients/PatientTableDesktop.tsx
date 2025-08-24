@@ -727,6 +727,7 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Истекает</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Паспорт номер</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Город</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Примечание</th>
               </>
             )}
@@ -748,6 +749,7 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Рейс</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '30px', minWidth: '30px', maxWidth: '30px'}}>Т-нал</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>ПАС</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Квартира</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
               </>
@@ -764,6 +766,7 @@ export function PatientTableDesktop({
                   <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
                 )}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время убытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Транспорт</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Город убытия</th>
@@ -786,6 +789,7 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата убытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '50px'}}>Виза истекает</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Действия</th>
               </>
@@ -803,6 +807,7 @@ export function PatientTableDesktop({
                 )}
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Тип визы</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Количество дней в визе</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Дата въезда в Китай</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Истекает</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Истекает дата</th>
@@ -820,6 +825,7 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Телефон</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '140px'}}>Электронный адрес</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Должность</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
               </>
             )}
           </tr>
@@ -860,6 +866,7 @@ export function PatientTableDesktop({
                   </td>
                   {renderEditableCell(patient, 'patient_passport', patient.patient_passport)}
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_city || '-'}</td>
+                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'basic')}
                   {renderEditableCell(patient, 'notes', patient.notes, undefined, 'basic')}
                 </>
               )}
@@ -881,6 +888,7 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_flight_number || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_terminal || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.passengers_count || '-'}</td>
+                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'arrival')}
                   {renderEditableCell(patient, 'apartment_number', patient.apartment_number)}
                   {renderEditableCell(patient, 'notes', patient.notes, undefined, 'arrival')}
                 </>
@@ -897,6 +905,7 @@ export function PatientTableDesktop({
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
                   )}
                   <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
+                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'departure')}
                   {renderEditableCell(patient, 'departure_datetime', patient.departure_datetime, formatDateTimeForEdit)}
                   {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type)}
                   {renderEditableCell(patient, 'departure_city', patient.departure_city)}
@@ -921,6 +930,7 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
                   </td>
+                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'treatment')}
                   {renderEditableCell(patient, 'notes', patient.notes, undefined, 'treatment')}
                   <td className="border-2 border-gray-400 px-4 py-2">
                     <Button 
@@ -947,6 +957,7 @@ export function PatientTableDesktop({
                   )}
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_type || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_days || '-'}</td>
+                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'visa')}
                   {renderEditableCell(patient, 'china_entry_date', patient.china_entry_date, 
                     (val) => val ? format(parseISO(val), 'dd.MM.yyyy', { locale: ru }) : '-', 'visa')}
                   <td className="border-2 border-gray-400 px-4 py-2">
@@ -972,6 +983,7 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_phone || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_email || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_position || '-'}</td>
+                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'personal')}
                 </>
               )}
             </tr>

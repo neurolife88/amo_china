@@ -50,7 +50,6 @@ export function PatientCardsMobile({
     departure_transport_type: '',
     departure_city: '',
     departure_datetime: null as Date | null,
-    departure_time: '12:00',
     departure_flight_number: ''
   });
 
@@ -185,10 +184,9 @@ export function PatientCardsMobile({
       'notes' // Добавляем поддержку редактирования примечаний
     ];
     
-    // Китайское имя можно редактировать в закладке "На лечении", "Прибытие" или "Все"
+    // Китайское имя можно редактировать во всех группах
     if (field === 'patient_chinese_name') {
-      return (userRole === 'coordinator' || userRole === 'super_admin') && 
-             (fieldGroup === 'treatment' || fieldGroup === 'arrival' || fieldGroup === 'basic');
+      return (userRole === 'coordinator' || userRole === 'super_admin');
     }
     
     // Примечания могут редактировать все роли
@@ -249,7 +247,7 @@ export function PatientCardsMobile({
               <Input
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                className="h-8 text-sm"
+                className="h-8 text-base"
                 autoFocus
               />
             )}
@@ -355,7 +353,6 @@ export function PatientCardsMobile({
       departure_transport_type: patient?.departure_transport_type || '',
       departure_city: patient?.departure_city || '',
       departure_datetime: patient?.departure_datetime ? new Date(patient.departure_datetime) : null,
-      departure_time: patient?.departure_time || '12:00',
       departure_flight_number: patient?.departure_flight_number || ''
     });
     setShowReturnTicketsModal(true);
@@ -367,9 +364,8 @@ export function PatientCardsMobile({
     try {
       // Сохраняем время как простую строку без создания Date объекта
       let departureDateTime = null;
-      if (returnTicketsData.departure_datetime && returnTicketsData.departure_time) {
+      if (returnTicketsData.departure_datetime) {
         const date = new Date(returnTicketsData.departure_datetime);
-        const [hours, minutes] = returnTicketsData.departure_time.split(':');
         
         // Просто форматируем строку без создания нового Date
         const year = date.getFullYear();
@@ -377,14 +373,13 @@ export function PatientCardsMobile({
         const day = String(date.getDate()).padStart(2, '0');
         
         // Используем время как есть, без конвертации
-        departureDateTime = `${year}-${month}-${day} ${hours}:${minutes}:00`;
+        departureDateTime = `${year}-${month}-${day} ${date.getHours()}:${date.getMinutes()}:00`;
       }
 
               await onPatientUpdate(selectedDealId, {
           departure_transport_type: returnTicketsData.departure_transport_type,
           departure_city: returnTicketsData.departure_city,
         departure_datetime: departureDateTime,
-          departure_time: returnTicketsData.departure_time,
           departure_flight_number: returnTicketsData.departure_flight_number
         });
       
@@ -411,7 +406,6 @@ export function PatientCardsMobile({
       departure_transport_type: '',
       departure_city: '',
       departure_datetime: null,
-      departure_time: '12:00',
       departure_flight_number: ''
     });
   };
@@ -433,50 +427,48 @@ export function PatientCardsMobile({
                 <User className="h-4 w-4" />
                 <span>{patient.patient_full_name || 'Без имени'}</span>
               </CardTitle>
-              {patient.patient_chinese_name && (
-                <div className="text-sm text-muted-foreground font-normal group relative flex items-center space-x-1">
-                  {editingChineseName === patient.deal_id ? (
-                    <div className="flex items-center space-x-1">
-                      <Input
-                        value={chineseNameValue}
-                        onChange={(e) => setChineseNameValue(e.target.value)}
-                        className="h-6 text-sm w-20"
-                        autoFocus
-                      />
+              <div className="text-base text-muted-foreground font-normal group relative flex items-center space-x-1">
+                {editingChineseName === patient.deal_id ? (
+                  <div className="flex items-center space-x-1">
+                    <Input
+                      value={chineseNameValue}
+                      onChange={(e) => setChineseNameValue(e.target.value)}
+                      className="h-6 text-base w-20"
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => saveChineseName(patient.deal_id)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Check className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={cancelChineseNameEdit}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <span>{patient.patient_chinese_name || '-'}</span>
+                    {canEdit('patient_chinese_name') && (
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => saveChineseName(patient.deal_id)}
-                        className="h-6 w-6 p-0"
+                        onClick={() => startEditingChineseName(patient.deal_id, patient.patient_chinese_name || '')}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
                       >
-                        <Check className="h-3 w-3" />
+                        <Edit2 className="h-3 w-3" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={cancelChineseNameEdit}
-                        className="h-6 w-6 p-0"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <span>{patient.patient_chinese_name}</span>
-                      {canEdit('patient_chinese_name', visibleFieldGroups.includes('treatment') ? 'treatment' : visibleFieldGroups.includes('arrival') ? 'arrival' : 'basic') && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => startEditingChineseName(patient.deal_id, patient.patient_chinese_name || '')}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
+                    )}
+                  </>
+                )}
+              </div>
             </div>
             <div className="text-sm text-muted-foreground">
                              {permissions.shouldShowField('clinic_name', 'basic') && (
@@ -520,6 +512,7 @@ export function PatientCardsMobile({
                         <span className="text-muted-foreground">Страна:</span>
                         <div>{patient.deal_country || '-'}</div>
                       </div>
+                      {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'arrival')}
                       {permissions.shouldShowField('clinic_name', 'arrival') && (
                         <div>
                           <span className="text-muted-foreground">Клиника:</span>
@@ -597,6 +590,7 @@ export function PatientCardsMobile({
                    <span className="font-medium text-sm">Обратные билеты</span>
                  </div>
                   <div className="grid grid-cols-1 gap-2 text-sm">
+                    {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'departure')}
                     {renderEditableField(patient, 'departure_datetime', patient.departure_datetime, 'Дата', formatDate)}
                     {renderEditableField(patient, 'departure_city', patient.departure_city, 'Город')}
                     {renderEditableField(patient, 'departure_flight_number', patient.departure_flight_number, 'Рейс')}
@@ -628,6 +622,7 @@ export function PatientCardsMobile({
                      <span className="text-muted-foreground">Дата начала: </span>
                      <span>{formatDate(patient.arrival_datetime)}</span>
                    </div>
+                   {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'treatment')}
                    <div>
                      <span className="text-muted-foreground">Квартира: </span>
                      <span className="inline-flex items-center space-x-1">
@@ -675,6 +670,7 @@ export function PatientCardsMobile({
                 <div className="text-sm">
                   <span className="text-muted-foreground">Дней в визе:</span> {patient.visa_days || '-'}
                 </div>
+                {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'visa')}
                 {patient.days_until_visa_expires !== null && (
                   <div className="text-sm">
                     <span className="text-muted-foreground">До истечения:</span>{' '}
@@ -703,6 +699,7 @@ export function PatientCardsMobile({
                   <span className="font-medium text-sm">Личные данные</span>
                 </div>
                 <div className="space-y-1 text-sm">
+                  {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'personal')}
                   <div>
                     <span className="text-muted-foreground">Телефон:</span> {patient.patient_phone || '-'}
                   </div>
@@ -853,12 +850,6 @@ export function PatientCardsMobile({
                     />
                   </PopoverContent>
                 </Popover>
-                <Input
-                  type="time"
-                  value={returnTicketsData.departure_time}
-                  onChange={(e) => setReturnTicketsData(prev => ({ ...prev, departure_time: e.target.value }))}
-                  className="w-32"
-                />
               </div>
             </div>
 

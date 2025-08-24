@@ -176,9 +176,8 @@ export function canEditField(
       return hasPermission(userRole, PERMISSIONS.EDIT_CHINA_ENTRY_DATE);
       
     case 'patient_chinese_name':
-      // Специальная логика: только в группе "treatment", "arrival" или "basic"
-      return hasPermission(userRole, PERMISSIONS.EDIT_CHINESE_NAME) && 
-             (fieldGroup === 'treatment' || fieldGroup === 'arrival' || fieldGroup === 'basic');
+      // Специальная логика: редактируемо во всех группах
+      return hasPermission(userRole, PERMISSIONS.EDIT_CHINESE_NAME);
              
     default:
       return hasPermission(userRole, PERMISSIONS.EDIT_PATIENT_BASIC);
@@ -216,6 +215,11 @@ export function shouldShowFieldForRole(
   userRole: AppRole, 
   fieldGroup: FieldGroup
 ): boolean {
+  // Китайское имя всегда должно отображаться во всех группах
+  if (fieldName === 'patient_chinese_name') {
+    return true;
+  }
+
   // Поля, которые должны быть скрыты для координатора
   const hiddenFieldsForCoordinatorInGroups = {
     basic: ['clinic_name', 'status_name'],
