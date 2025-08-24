@@ -505,14 +505,9 @@ export function PatientCardsMobile({
                   <CollapsibleContent className="pt-2 space-y-2 text-sm">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <span className="text-muted-foreground">Пациент:</span>
-                        <div>{patient.patient_full_name || '-'}</div>
-                      </div>
-                      <div>
                         <span className="text-muted-foreground">Страна:</span>
                         <div>{patient.deal_country || '-'}</div>
                       </div>
-                      {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'arrival')}
                       {permissions.shouldShowField('clinic_name', 'arrival') && (
                         <div>
                           <span className="text-muted-foreground">Клиника:</span>
@@ -590,7 +585,6 @@ export function PatientCardsMobile({
                    <span className="font-medium text-sm">Обратные билеты</span>
                  </div>
                   <div className="grid grid-cols-1 gap-2 text-sm">
-                    {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'departure')}
                     {renderEditableField(patient, 'departure_datetime', patient.departure_datetime, 'Дата', formatDate)}
                     {renderEditableField(patient, 'departure_city', patient.departure_city, 'Город')}
                     {renderEditableField(patient, 'departure_flight_number', patient.departure_flight_number, 'Рейс')}
@@ -622,7 +616,6 @@ export function PatientCardsMobile({
                      <span className="text-muted-foreground">Дата начала: </span>
                      <span>{formatDate(patient.arrival_datetime)}</span>
                    </div>
-                   {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'treatment')}
                    <div>
                      <span className="text-muted-foreground">Квартира: </span>
                      <span className="inline-flex items-center space-x-1">
@@ -670,7 +663,6 @@ export function PatientCardsMobile({
                 <div className="text-sm">
                   <span className="text-muted-foreground">Дней в визе:</span> {patient.visa_days || '-'}
                 </div>
-                {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'visa')}
                 {patient.days_until_visa_expires !== null && (
                   <div className="text-sm">
                     <span className="text-muted-foreground">До истечения:</span>{' '}
@@ -699,7 +691,6 @@ export function PatientCardsMobile({
                   <span className="font-medium text-sm">Личные данные</span>
                 </div>
                 <div className="space-y-1 text-sm">
-                  {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'personal')}
                   <div>
                     <span className="text-muted-foreground">Телефон:</span> {patient.patient_phone || '-'}
                   </div>
@@ -721,27 +712,22 @@ export function PatientCardsMobile({
                   <span className="font-medium text-sm">Основная информация</span>
                 </div>
                 <div className="grid grid-cols-1 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Пациент:</span>
-                    <div>{patient.patient_full_name || '-'}</div>
-                  </div>
-                  {permissions.shouldShowField('clinic_name', 'basic') && (
-                    <div>
-                      <span className="text-muted-foreground">Клиника:</span>
-                      <div className="flex items-center space-x-2">
-                        <ClinicLogo clinicName={patient.clinic_name} className="w-8 h-8" />
-                        <span>{patient.clinic_name || '-'}</span>
-                      </div>
-                    </div>
-                  )}
-                  {permissions.shouldShowField('status_name', 'basic') && (
-                    <div>
-                      <span className="text-muted-foreground">Статус:</span>
-                      <div>{patient.status_name || '-'}</div>
-                    </div>
-                  )}
-                  {renderEditableField(patient, 'patient_chinese_name', patient.patient_chinese_name, '中文名字', undefined, 'basic')}
-                </div>
+                   {permissions.shouldShowField('clinic_name', 'basic') && (
+                     <div>
+                       <span className="text-muted-foreground">Клиника:</span>
+                       <div className="flex items-center space-x-2">
+                         <ClinicLogo clinicName={patient.clinic_name} className="w-8 h-8" />
+                         <span>{patient.clinic_name || '-'}</span>
+                       </div>
+                     </div>
+                   )}
+                   {permissions.shouldShowField('status_name', 'basic') && (
+                     <div>
+                       <span className="text-muted-foreground">Статус:</span>
+                       <div>{patient.status_name || '-'}</div>
+                     </div>
+                   )}
+                 </div>
               </div>
             )}
             
