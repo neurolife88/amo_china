@@ -47,7 +47,6 @@ export function PatientTableDesktop({
     departure_transport_type: '',
     departure_city: '',
     departure_datetime: null as Date | null,
-    departure_time: '12:00',
     departure_flight_number: ''
   });
 
@@ -605,20 +604,17 @@ export function PatientTableDesktop({
     setSelectedDealId(dealId);
     
     // Загружаем существующие данные, если они есть
-    let departureTime = '12:00';
     let departureDate = null;
     
     if (patient?.departure_datetime) {
       const date = new Date(patient.departure_datetime);
       departureDate = date;
-      departureTime = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
     }
     
     setReturnTicketsData({
       departure_transport_type: patient?.departure_transport_type || '',
       departure_city: patient?.departure_city || '',
       departure_datetime: departureDate,
-      departure_time: departureTime,
       departure_flight_number: patient?.departure_flight_number || ''
     });
     setShowReturnTicketsModal(true);
@@ -628,18 +624,16 @@ export function PatientTableDesktop({
     if (!selectedDealId) return;
     
     try {
-      // Сохраняем время как простую строку без создания Date объекта
+      // Форматируем departure_datetime в строку для сохранения
       let departureDateTime = null;
-      if (returnTicketsData.departure_datetime && returnTicketsData.departure_time) {
-        const date = new Date(returnTicketsData.departure_datetime);
-        const [hours, minutes] = returnTicketsData.departure_time.split(':');
-        
-        // Просто форматируем строку без создания нового Date
+      if (returnTicketsData.departure_datetime) {
+        const date = returnTicketsData.departure_datetime;
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
         
-        // Используем время как есть, без конвертации
         departureDateTime = `${year}-${month}-${day} ${hours}:${minutes}:00`;
       }
 
@@ -656,7 +650,6 @@ export function PatientTableDesktop({
         departure_transport_type: '',
         departure_city: '',
         departure_datetime: null,
-        departure_time: '12:00',
         departure_flight_number: ''
       });
       
@@ -682,7 +675,6 @@ export function PatientTableDesktop({
       departure_transport_type: '',
       departure_city: '',
       departure_datetime: null,
-      departure_time: '12:00',
       departure_flight_number: ''
     });
   };
