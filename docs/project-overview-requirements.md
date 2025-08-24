@@ -23,13 +23,13 @@ A web interface for medical tourism staff in China serving 4 clinics where inter
 ## Technical Architecture
 
 ### Technology Stack
-- **Development Platform**: Lovable.dev
+- **Development Platform**: CURSOR IDE
 - **Frontend**: React 18+ with TypeScript
 - **Styling**: Tailwind CSS v3.x
 - **State Management**: React Context + useReducer
 - **Backend**: Supabase (PostgreSQL + Real-time)
 - **Authentication**: Supabase Auth with RLS
-- **Deployment**: Lovable cloud hosting
+- **Deployment**: Beget.ru hosting
 - **Monitoring**: Supabase Analytics
 
 ### Architectural Principles

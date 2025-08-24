@@ -677,4 +677,4 @@ export const usePatients = (userProfile: UserProfile) => {
 }
 ```
 
-This comprehensive component architecture provides a solid foundation for building the medical tourism patient management system on the Lovable platform with proper separation of concerns, type safety, and real-time capabilities.
+This comprehensive component architecture provides a solid foundation for building the medical tourism patient management system with proper separation of concerns, type safety, and real-time capabilities.
