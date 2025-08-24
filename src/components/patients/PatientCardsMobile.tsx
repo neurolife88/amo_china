@@ -619,12 +619,7 @@ export function PatientCardsMobile({
                      <span className="text-muted-foreground">Дата начала: </span>
                      <span>{formatDate(patient.arrival_datetime)}</span>
                    </div>
-                   <div>
-                     <span className="text-muted-foreground">Квартира: </span>
-                     <span className="inline-flex items-center space-x-1">
-                       {renderEditableField(patient, 'apartment_number', 'Квартира', 'treatment')}
-                     </span>
-                   </div>
+                   {renderEditableField(patient, 'apartment_number', 'Квартира', 'treatment')}
                  </div>
                  
                  {/* Add Return Tickets Button */}
