@@ -7,6 +7,7 @@ import { Search, Building, Hospital, Plane, MapPin } from 'lucide-react';
 import { PatientFilters } from '@/types/patient';
 import { useAuth } from '@/hooks/useAuth';
 import { useClinics } from '@/hooks/useClinics';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface FilterPanelProps {
   onFilterChange: (filters: PatientFilters) => void;
@@ -16,14 +17,13 @@ interface FilterPanelProps {
 export function FilterPanel({ onFilterChange, currentFilters }: FilterPanelProps) {
   const { profile } = useAuth();
   const { clinics } = useClinics();
+  const { patients: patientTranslations } = useTranslations();
   const [searchTerm, setSearchTerm] = useState(currentFilters.search || '');
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     onFilterChange({ ...currentFilters, search: value });
   };
-
-
 
   // handleStatusChange удалена - теперь используется только status_name из AmoCRM
 
@@ -37,14 +37,12 @@ export function FilterPanel({ onFilterChange, currentFilters }: FilterPanelProps
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
-          placeholder="Поиск пациентов..."
+          placeholder={patientTranslations.searchPlaceholder()}
           value={searchTerm}
           onChange={(e) => handleSearchChange(e.target.value)}
           className="pl-9"
         />
       </div>
-
-
 
       {/* Status Filters удалены - теперь используется только status_name из AmoCRM */}
 

@@ -12,6 +12,7 @@ import { ru } from 'date-fns/locale';
 import { Edit2, Check, X, Plane } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCities } from '@/hooks/useCities';
+import { useTranslations } from '@/hooks/useTranslations';
 import ExpandableText from '../ExpandableText';
 import StickyHorizontalScroll from '../StickyHorizontalScroll';
 import { Calendar } from 'lucide-react';
@@ -37,6 +38,7 @@ export function PatientTableDesktop({
 }: PatientTableDesktopProps) {
   const { toast } = useToast();
   const { cities } = useCities();
+  const { patients: patientTranslations } = useTranslations();
   const [editingField, setEditingField] = useState<{ dealId: number; field: string } | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   
@@ -131,8 +133,8 @@ export function PatientTableDesktop({
 
           setEditingField(null);
           toast({
-            title: "Успешно обновлено",
-            description: "Дата въезда в Китай обновлена",
+            title: patientTranslations.toasts.success.updated(),
+            description: patientTranslations.toasts.success.entryDateUpdated(),
           });
 
           return;
@@ -183,15 +185,15 @@ export function PatientTableDesktop({
       setEditingField(null);
       setEditValue(''); // Очищаем значение после сохранения
       toast({
-        title: "Успешно обновлено",
-        description: "Данные пациента обновлены",
+        title: patientTranslations.toasts.success.updated(),
+        description: patientTranslations.toasts.success.patientDataUpdated(),
       });
     } catch (error) {
       console.error('Error saving edit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
       toast({
-        title: "Ошибка обновления",
-        description: `Не удалось обновить данные: ${errorMessage}`,
+        title: patientTranslations.toasts.error.updateFailed(),
+        description: `${patientTranslations.toasts.error.failedToUpdate}: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -260,14 +262,14 @@ export function PatientTableDesktop({
                 console.log('onPatientUpdate completed successfully');
                 
                 toast({
-                  title: "Успешно обновлено",
-                  description: "Примечание обновлено",
+                  title: patientTranslations.toasts.success.updated(),
+                  description: patientTranslations.toasts.success.notesUpdated(),
                 });
               } catch (error) {
                 console.error('Error in onPatientUpdate:', error);
                 toast({
-                  title: "Ошибка обновления",
-                  description: `Не удалось обновить примечание: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
+                  title: patientTranslations.toasts.error.updateFailed(),
+                  description: `${patientTranslations.toasts.error.failedToUpdate}: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
                   variant: "destructive",
                 });
               }
@@ -330,7 +332,7 @@ export function PatientTableDesktop({
                 onValueChange={(value) => setEditValue(value)}
               >
                 <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Выберите город" />
+                  <SelectValue placeholder={patientTranslations.placeholders.selectCity()} />
                 </SelectTrigger>
                 <SelectContent>
                   {cities.map((city) => (
@@ -370,7 +372,7 @@ export function PatientTableDesktop({
                 onValueChange={(value) => setEditValue(value)}
               >
                 <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Выберите транспорт" />
+                  <SelectValue placeholder={patientTranslations.placeholders.selectTransport()} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Самолет">Самолет</SelectItem>
@@ -518,7 +520,7 @@ export function PatientTableDesktop({
       <td
         className={`border-2 border-gray-400 px-4 py-2 ${canEdit(field, fieldGroup) ? 'cursor-pointer hover:bg-muted/50 group' : ''}`}
         onClick={() => canEdit(field, fieldGroup) && startEditing(patient.deal_id, field, rawValue)}
-        title={canEdit(field, fieldGroup) ? 'Клик для редактирования' : ''}
+        title={canEdit(field, fieldGroup) ? patientTranslations.placeholders.clickToEdit() : ''}
       >
         <div className="flex items-center gap-2">
           <span>{displayValue}</span>
@@ -654,15 +656,15 @@ export function PatientTableDesktop({
       });
       
       toast({
-        title: "Успешно сохранено",
-        description: "Данные обратных билетов обновлены",
+        title: patientTranslations.toasts.success.updated(),
+        description: patientTranslations.toasts.success.returnTicketsSaved(),
       });
     } catch (error) {
       console.error('Error saving return tickets:', error);
       const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
       toast({
-        title: "Ошибка сохранения",
-        description: `Не удалось сохранить данные: ${errorMessage}`,
+        title: patientTranslations.toasts.error.updateFailed(),
+        description: `${patientTranslations.toasts.error.failedToSave}: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -697,127 +699,121 @@ export function PatientTableDesktop({
         <thead>
           <tr className="bg-gray-50">
             {/* Пациент всегда отображается */}
-            <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '49px', minWidth: '49px', maxWidth: '49px'}}>Пациент</th>
-            <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
+            <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '49px', minWidth: '49px', maxWidth: '49px'}}>{patientTranslations.tableHeaders.patient()}</th>
+            <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>{patientTranslations.tableHeaders.chineseName()}</th>
             
             {/* Basic fields */}
             {visibleFieldGroups.includes('basic') && (
               <>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>{patientTranslations.tableHeaders.country()}</th>
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Клиника</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.clinic()}</th>
                 )}
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>{patientTranslations.tableHeaders.dealStatus()}</th>
                 )}
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Дата и время прибытия</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Транспорт</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Рейс</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Квартира</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Тип визы</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Количество дней в визе</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Истекает</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Паспорт номер</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Город</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Примечание</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>{patientTranslations.tableHeaders.arrivalDateTime()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>{patientTranslations.tableHeaders.transport()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>{patientTranslations.tableHeaders.flight()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>{patientTranslations.tableHeaders.apartment()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>{patientTranslations.tableHeaders.visaType()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>{patientTranslations.tableHeaders.visaDays()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>{patientTranslations.tableHeaders.expires()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.passportNumber()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>{patientTranslations.tableHeaders.city()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.notes()}</th>
               </>
             )}
             
             {/* Arrival fields */}
             {visibleFieldGroups.includes('arrival') && (
               <>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.country()}</th>
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.clinic()}</th>
                 )}
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>{patientTranslations.tableHeaders.dealStatus()}</th>
                 )}
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '75px', minWidth: '75px', maxWidth: '75px'}}>Транспорт</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>Код аэропорта</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Город прибытия</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Рейс</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '30px', minWidth: '30px', maxWidth: '30px'}}>Т-нал</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>ПАС</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Квартира</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>{patientTranslations.tableHeaders.arrivalDateTime()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '75px', minWidth: '75px', maxWidth: '75px'}}>{patientTranslations.tableHeaders.transport()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>{patientTranslations.tableHeaders.airportCode()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.arrivalCity()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.flight()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '30px', minWidth: '30px', maxWidth: '30px'}}>{patientTranslations.tableHeaders.terminal()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>{patientTranslations.tableHeaders.passengers()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.apartment()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>{patientTranslations.tableHeaders.notes()}</th>
               </>
             )}
             
             {/* Departure fields */}
             {visibleFieldGroups.includes('departure') && (
               <>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.country()}</th>
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.clinic()}</th>
                 )}
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>{patientTranslations.tableHeaders.dealStatus()}</th>
                 )}
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время прибытия</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>Дата и время убытия</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Транспорт</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Город убытия</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Номер рейса</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>{patientTranslations.tableHeaders.arrivalDateTime()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '110px'}}>{patientTranslations.tableHeaders.departureDateTime()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.transport()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.departureCity()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.departureFlight()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>{patientTranslations.tableHeaders.notes()}</th>
               </>
             )}
              
             {/* Treatment fields */}
             {visibleFieldGroups.includes('treatment') && (
               <>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-1" style={{width: '25px', minWidth: '25px', maxWidth: '25px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-2" style={{width: '14px', minWidth: '14px', maxWidth: '14px'}}>Номер квартиры</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-1" style={{width: '25px', minWidth: '25px', maxWidth: '25px'}}>{patientTranslations.tableHeaders.country()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-2" style={{width: '14px', minWidth: '14px', maxWidth: '14px'}}>{patientTranslations.tableHeaders.apartmentNumber()}</th>
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-3" style={{width: '32px', minWidth: '32px', maxWidth: '32px'}}>Клиника</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words treatment-col-3" style={{width: '32px', minWidth: '32px', maxWidth: '32px'}}>{patientTranslations.tableHeaders.clinic()}</th>
                 )}
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Статус сделки</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>{patientTranslations.tableHeaders.dealStatus()}</th>
                 )}
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата прибытия</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата убытия</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '50px'}}>Виза истекает</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Действия</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>{patientTranslations.tableHeaders.arrivalDateTime()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>{patientTranslations.tableHeaders.departureDateTime()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '50px'}}>{patientTranslations.tableHeaders.visaExpiryDate()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>{patientTranslations.tableHeaders.notes()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.actions()}</th>
               </>
             )}
              
             {/* Visa fields */}
             {visibleFieldGroups.includes('visa') && (
               <>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.country()}</th>
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.clinic()}</th>
                 )}
                 {userRole !== 'coordinator' && (
-                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>Статус сделки</th>
+                  <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '90px'}}>{patientTranslations.tableHeaders.dealStatus()}</th>
                 )}
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Тип визы</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Количество дней в визе</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Дата въезда в Китай</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Истекает</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Истекает дата</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.visaType()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.visaDays()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>{patientTranslations.tableHeaders.chinaEntryDate()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.expires()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>{patientTranslations.tableHeaders.expiryDate()}</th>
               </>
             )}
             
             {/* Personal fields (super admin only) */}
             {visibleFieldGroups.includes('personal') && userRole === 'super_admin' && (
               <>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Клиника</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Страна</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Город</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Дата рождения</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Номер паспорта</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Телефон</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '140px'}}>Электронный адрес</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Должность</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '114px', minWidth: '114px', maxWidth: '114px'}}>中文名字</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.clinic()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.country()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>{patientTranslations.tableHeaders.city()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.birthDate()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.passport()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.phone()}</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '140px'}}>{patientTranslations.tableHeaders.email()}</th>
+                                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.position()}</th>
               </>
             )}
           </tr>
@@ -858,7 +854,7 @@ export function PatientTableDesktop({
                   </td>
                   {renderEditableCell(patient, 'patient_passport', patient.patient_passport)}
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_city || '-'}</td>
-                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'basic')}
+
                   {renderEditableCell(patient, 'notes', patient.notes, undefined, 'basic')}
                 </>
               )}
@@ -880,7 +876,7 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_flight_number || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.arrival_terminal || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.passengers_count || '-'}</td>
-                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'arrival')}
+
                   {renderEditableCell(patient, 'apartment_number', patient.apartment_number)}
                   {renderEditableCell(patient, 'notes', patient.notes, undefined, 'arrival')}
                 </>
@@ -897,7 +893,7 @@ export function PatientTableDesktop({
                     <td className="border-2 border-gray-400 px-4 py-2">{patient.status_name || '-'}</td>
                   )}
                   <td className="border-2 border-gray-400 px-4 py-2">{formatDate(patient.arrival_datetime)}</td>
-                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'departure')}
+
                   {renderEditableCell(patient, 'departure_datetime', patient.departure_datetime, formatDateTimeForEdit)}
                   {renderEditableCell(patient, 'departure_transport_type', patient.departure_transport_type)}
                   {renderEditableCell(patient, 'departure_city', patient.departure_city)}
@@ -922,7 +918,7 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">
                     {getVisaBadge(patient.visa_status, patient.days_until_visa_expires)}
                   </td>
-                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'treatment')}
+
                   {renderEditableCell(patient, 'notes', patient.notes, undefined, 'treatment')}
                   <td className="border-2 border-gray-400 px-4 py-2">
                     <Button 
@@ -931,7 +927,7 @@ export function PatientTableDesktop({
                       onClick={() => handleAddReturnTickets(patient.deal_id)}
                     >
                       <Plane className="h-4 w-4 mr-1 rotate-45" />
-                      {patient.departure_datetime ? 'Редактировать' : 'Добавить билеты'}
+                      {patient.departure_datetime ? patientTranslations.actions.editTickets() : patientTranslations.actions.addTickets()}
                     </Button>
                   </td>
                 </>
@@ -949,7 +945,7 @@ export function PatientTableDesktop({
                   )}
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_type || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.visa_days || '-'}</td>
-                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'visa')}
+
                   {renderEditableCell(patient, 'china_entry_date', patient.china_entry_date, 
                     (val) => val ? format(parseISO(val), 'dd.MM.yyyy', { locale: ru }) : '-', 'visa')}
                   <td className="border-2 border-gray-400 px-4 py-2">
@@ -974,10 +970,9 @@ export function PatientTableDesktop({
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_passport || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_phone || '-'}</td>
                   <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_email || '-'}</td>
-                  <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_position || '-'}</td>
-                  {renderEditableCell(patient, 'patient_chinese_name', patient.patient_chinese_name, undefined, 'personal')}
-                </>
-              )}
+                                     <td className="border-2 border-gray-400 px-4 py-2">{patient.patient_position || '-'}</td>
+                 </>
+               )}
             </tr>
           );
           })}

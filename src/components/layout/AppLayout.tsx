@@ -6,6 +6,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { UserAvatar } from '@/components/common/UserAvatar';
 import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { EmailVerificationAlert } from '@/components/auth/EmailVerificationAlert';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
+import { useTranslations } from '@/hooks/useTranslations';
 import Version from '@/components/Version';
 
 interface AppLayoutProps {
@@ -15,12 +17,12 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, profile, signOut, profileError, refetchProfile, emailVerified } = useAuth();
   const location = useLocation();
+  const { navigation, common, users } = useTranslations();
 
   // Show email verification alert if user is logged in but email not verified
   if (user && emailVerified === false) {
     return <EmailVerificationAlert />;
   }
-
 
   const handleSignOut = async () => {
     try {
@@ -50,7 +52,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Выйти
+                {navigation.logout()}
               </Button>
             </div>
           </div>
@@ -75,6 +77,20 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   if (!profile) return null;
 
+  // Функция для получения роли пользователя
+  const getUserRoleText = () => {
+    switch (profile.role) {
+      case 'super_admin':
+        return users.roles.super_admin();
+      case 'director':
+        return users.roles.director();
+      case 'coordinator':
+        return users.roles.coordinator();
+      default:
+        return profile.role;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -87,7 +103,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <h1 className="text-xl font-bold text-foreground">CRM</h1>
                 <Version />
               </div>
-              
             </div>
           </div>
           
@@ -97,57 +112,57 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="text-sm">
                 <div className="font-medium text-foreground">{profile.full_name || profile.email}</div>
                 <div className="text-muted-foreground capitalize">
-                    {profile.role === 'super_admin' ? 'Супер Админ' : 
-                   profile.role === 'director' ? 'Директор' : 'Координатор'}
+                  {getUserRoleText()}
                 </div>
               </div>
             </div>
             
+            <LanguageSwitcher />
+            
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
-              Выйти
+              {navigation.logout()}
             </Button>
           </div>
         </div>
-        </header>
+      </header>
 
-        {/* Navigation for Super Admin */}
-        {profile.role === 'super_admin' && (
-          <nav className="border-b border-border bg-muted/30">
-            <div className="container mx-auto px-4">
-              <div className="flex space-x-6">
-                <Link
-                  to="/"
-                  className={`flex items-center space-x-2 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    location.pathname === '/'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
-                  }`}
-                >
-                  <Home className="h-4 w-4" />
-                  <span>Дашборд</span>
-                </Link>
-                <Link
-                  to="/users"
-                  className={`flex items-center space-x-2 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    location.pathname === '/users'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
-                  }`}
-                >
-                  <Shield className="h-4 w-4" />
-                  <span>Управление пользователями</span>
-                </Link>
-              </div>
+      {/* Navigation for Super Admin */}
+      {profile.role === 'super_admin' && (
+        <nav className="border-b border-border bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="flex space-x-6">
+              <Link
+                to="/"
+                className={`flex items-center space-x-2 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  location.pathname === '/'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
+                }`}
+              >
+                <Home className="h-4 w-4" />
+                <span>{navigation.dashboard()}</span>
+              </Link>
+              <Link
+                to="/users"
+                className={`flex items-center space-x-2 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  location.pathname === '/users'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
+                }`}
+              >
+                <Shield className="h-4 w-4" />
+                <span>{users.title()}</span>
+              </Link>
             </div>
-          </nav>
-        )}
+          </div>
+        </nav>
+      )}
 
-
-        {/* Main content */}
-        <main className="container mx-auto px-4 py-6">
-          {children}
-        </main>
+      {/* Main content */}
+      <main className="container mx-auto px-4 py-6">
+        {children}
+      </main>
     </div>
   );
 }

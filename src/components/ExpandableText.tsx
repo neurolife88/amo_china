@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface ExpandableTextProps {
   text: string | null | undefined;
@@ -13,6 +14,7 @@ const ExpandableText: React.FC<ExpandableTextProps> = ({
   className = "" 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { patients: patientTranslations } = useTranslations();
   
   // Обработка пустых значений
   if (!text || text.trim() === '') {
@@ -52,12 +54,12 @@ const ExpandableText: React.FC<ExpandableTextProps> = ({
           {isExpanded ? (
             <>
               <ChevronUp size={12} />
-              Свернуть
+              {patientTranslations.mobileCards.collapse()}
             </>
           ) : (
             <>
               <ChevronDown size={12} />
-              Показать полностью
+              {patientTranslations.mobileCards.showFull()}
             </>
           )}
         </button>

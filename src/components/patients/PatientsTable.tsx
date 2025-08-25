@@ -6,6 +6,7 @@ import { FilterPanel } from './FilterPanel';
 import { PatientTableDesktop } from './PatientTableDesktop';
 import { PatientCardsMobile } from './PatientCardsMobile';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useTranslations } from '@/hooks/useTranslations';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -14,6 +15,7 @@ import { getSortedPatientsForFieldGroup } from '@/lib/sorting';
 export function PatientsTable() {
   const permissions = usePermissions();
   const { patients, loading, error, loadPatients, updatePatient } = usePatients();
+  const { filters: filterTranslations, patients: patientTranslations, messages } = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
   
   const [filters, setFilters] = useState<PatientFilters>({
@@ -174,7 +176,7 @@ export function PatientsTable() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-foreground">Клиника: {permissions.userClinic}</h1>
+        <h1 className="text-2xl font-bold text-foreground">{patientTranslations.clinicTitle(permissions.userClinic)}</h1>
       </div>
 
       {/* Filters */}
@@ -189,7 +191,7 @@ export function PatientsTable() {
           {[
             { 
               key: 'basic', 
-              label: 'ВСЕ', 
+              label: filterTranslations.all(), 
               count: patients.filter(p => 
                 p.status_name === 'Билеты куплены' || 
                 p.status_name === 'на лечении' || 
@@ -200,56 +202,56 @@ export function PatientsTable() {
             },
             { 
               key: 'arrival', 
-              label: 'Прибытие', 
+              label: filterTranslations.arrival(), 
               count: patients.filter(p => p.status_name === 'Билеты куплены' || p.status_name === 'квартира заказана').length,
               enabled: true 
             },
             { 
               key: 'treatment', 
-              label: 'На лечении', 
+              label: filterTranslations.treatment(), 
               count: patients.filter(p => p.status_name === 'на лечении' || p.status_name === 'обратные билеты с лечения').length,
               enabled: true 
             },
-                         { 
-               key: 'departure', 
-               label: 'Обратные билеты', 
-               count: patients.filter(p => {
-                 // Проверяем статус
-                 const hasCorrectStatus = p.status_name === 'на лечении' || p.status_name === 'обратные билеты с лечения';
-                 
-                 // Если статус неправильный или дата убытия не заполнена - исключаем
-                 if (!hasCorrectStatus || !p.departure_datetime) return false;
-                 
-                 // Проверяем диапазон даты убытия
-                 try {
-                   const departureDate = new Date(p.departure_datetime);
-                   const now = new Date();
-                   
-                   // Сегодня минус 2 дня
-                   const twoDaysAgo = new Date(now);
-                   twoDaysAgo.setDate(now.getDate() - 2);
-                   
-                   // Сегодня плюс 1 год
-                   const oneYearFromNow = new Date(now);
-                   oneYearFromNow.setFullYear(now.getFullYear() + 1);
-                   
-                   return departureDate >= twoDaysAgo && departureDate <= oneYearFromNow;
-                 } catch (error) {
-                   // Если дата невалидная - исключаем
-                   return false;
-                 }
-               }).length,
-               enabled: true 
-             },
+            { 
+              key: 'departure', 
+              label: filterTranslations.departure(), 
+              count: patients.filter(p => {
+                // Проверяем статус
+                const hasCorrectStatus = p.status_name === 'на лечении' || p.status_name === 'обратные билеты с лечения';
+                
+                // Если статус неправильный или дата убытия не заполнена - исключаем
+                if (!hasCorrectStatus || !p.departure_datetime) return false;
+                
+                // Проверяем диапазон даты убытия
+                try {
+                  const departureDate = new Date(p.departure_datetime);
+                  const now = new Date();
+                  
+                  // Сегодня минус 2 дня
+                  const twoDaysAgo = new Date(now);
+                  twoDaysAgo.setDate(now.getDate() - 2);
+                  
+                  // Сегодня плюс 1 год
+                  const oneYearFromNow = new Date(now);
+                  oneYearFromNow.setFullYear(now.getFullYear() + 1);
+                  
+                  return departureDate >= twoDaysAgo && departureDate <= oneYearFromNow;
+                } catch (error) {
+                  // Если дата невалидная - исключаем
+                  return false;
+                }
+              }).length,
+              enabled: true 
+            },
             { 
               key: 'visa', 
-              label: 'Виза', 
+              label: filterTranslations.visa(), 
               count: 0,
               enabled: true 
             },
             { 
               key: 'personal', 
-              label: 'Личные данные', 
+              label: filterTranslations.personal(), 
               count: 0,
               enabled: permissions.isSuperAdmin 
             }
@@ -279,7 +281,7 @@ export function PatientsTable() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Ошибка загрузки данных: {error}
+            {messages.loadError(error)}
           </AlertDescription>
         </Alert>
       ) : loading ? (
@@ -290,30 +292,26 @@ export function PatientsTable() {
         </div>
       ) : patients.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          <p>Пациенты не найдены</p>
-          <p className="text-sm">Попробуйте изменить фильтры поиска</p>
+          <p>{patientTranslations.noPatientsFound()}</p>
+          <p className="text-sm">{patientTranslations.tryChangeFilters()}</p>
         </div>
       ) : (
         <>
-                    {isMobile ? (
+          {isMobile ? (
             <PatientCardsMobile 
-              patients={sortedPatients} 
+              patients={sortedPatients}
               visibleFieldGroups={visibleFieldGroups}
               onPatientUpdate={handlePatientUpdate}
               userRole={permissions.userRole!}
             />
           ) : (
             <PatientTableDesktop 
-              patients={sortedPatients} 
+              patients={sortedPatients}
               visibleFieldGroups={visibleFieldGroups}
               onPatientUpdate={handlePatientUpdate}
               userRole={permissions.userRole!}
             />
           )}
-          
-          <div className="text-center text-sm text-muted-foreground">
-            Найдено пациентов: {sortedPatients.length}
-          </div>
         </>
       )}
     </div>

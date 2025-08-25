@@ -29,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Новые импорты для системы прав
 import { usePermissions, PermissionGate } from '@/hooks/usePermissions';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface PatientTableDesktopProps {
   patients: PatientData[];
@@ -46,6 +47,7 @@ export function PatientTableDesktop({
   const permissions = usePermissions();
   const { toast } = useToast();
   const { cities } = useCities();
+  const { patients: patientTranslations } = useTranslations();
   
   const [editingField, setEditingField] = useState<{ dealId: number; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -110,11 +112,11 @@ export function PatientTableDesktop({
       fieldGroup, 
       targetClinic: patient?.clinic_name 
     })) {
-      toast({
-        title: "Недостаточно прав",
-        description: "У вас нет прав для редактирования этого поля",
-        variant: "destructive"
-      });
+             toast({
+         title: patientTranslations.toasts.error.updateFailed(),
+         description: "У вас нет прав для редактирования этого поля",
+         variant: "destructive"
+       });
       return;
     }
 
@@ -172,15 +174,15 @@ export function PatientTableDesktop({
          await onPatientUpdate(dealId, updates);
        }
 
-       toast({
-         title: "Успешно сохранено",
-         description: "Изменения были применены",
-       });
+               toast({
+          title: patientTranslations.toasts.success.updated(),
+          description: "Изменения были применены",
+        });
 
      } catch (error) {
        console.error('Error saving edit:', error);
        toast({
-         title: "Ошибка сохранения",
+         title: patientTranslations.toasts.error.updateFailed(),
          description: error instanceof Error ? error.message : 'Произошла ошибка при сохранении',
          variant: "destructive"
        });
@@ -203,7 +205,7 @@ export function PatientTableDesktop({
     // Проверяем права доступа - только координаторы и супер-админы
     if (!permissions.isCoordinator && !permissions.isSuperAdmin) {
       toast({
-        title: "Недостаточно прав",
+        title: patientTranslations.toasts.error.updateFailed(),
         description: "Только координаторы и супер-админы могут редактировать билеты",
         variant: "destructive"
       });
@@ -263,7 +265,7 @@ export function PatientTableDesktop({
       await onPatientUpdate(selectedPatient.deal_id, updates);
       
       toast({
-        title: "Успешно сохранено",
+        title: patientTranslations.toasts.success.returnTicketsSaved(),
         description: "Данные обратных билетов обновлены",
       });
       
@@ -273,7 +275,7 @@ export function PatientTableDesktop({
     } catch (error) {
       console.error('Error saving return tickets:', error);
       toast({
-        title: "Ошибка сохранения",
+        title: patientTranslations.toasts.error.updateFailed(),
         description: error instanceof Error ? error.message : 'Произошла ошибка при сохранении',
         variant: "destructive"
       });
@@ -341,14 +343,14 @@ export function PatientTableDesktop({
                   await onPatientUpdate(patient.deal_id, updates);
                   
                   toast({
-                    title: "Примечание обновлено",
+                    title: patientTranslations.toasts.success.notesUpdated(),
                     description: "Изменения были сохранены",
                   });
                 } catch (error) {
                   console.error('Error in EditableNotesCell onSave:', error);
                   toast({
-                    title: "Ошибка сохранения",
-                    description: "Не удалось сохранить примечание",
+                    title: patientTranslations.toasts.error.updateFailed(),
+                    description: patientTranslations.toasts.error.failedToUpdateNotes(),
                     variant: "destructive"
                   });
                   throw error; // Перебрасываем ошибку дальше
@@ -574,7 +576,7 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Тип визы</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '70px'}}>Количество дней в визе</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '60px'}}>Истекает</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Примечание</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>{patientTranslations.tableHeaders.notes()}</th>
               </>
             )}
             
@@ -592,7 +594,7 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '30px', minWidth: '30px', maxWidth: '30px'}}>Т-нал</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '40px', minWidth: '40px', maxWidth: '40px'}}>ПАС</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '80px'}}>Квартира</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>{patientTranslations.tableHeaders.notes()}</th>
               </>
             )}
             
@@ -607,7 +609,7 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Транспорт</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Город убытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Номер рейса</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>{patientTranslations.tableHeaders.notes()}</th>
               </>
             )}
              
@@ -621,7 +623,7 @@ export function PatientTableDesktop({
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата прибытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '55px'}}>Дата убытия</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '50px'}}>Виза истекает</th>
-                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>Примечание</th>
+                <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '120px'}}>{patientTranslations.tableHeaders.notes()}</th>
                 <th className="border-2 border-gray-400 px-4 py-2 font-medium text-left bg-gray-100 whitespace-normal break-words" style={{width: '100px'}}>Действия</th>
               </>
             )}
@@ -649,7 +651,7 @@ export function PatientTableDesktop({
                 {renderTableHeader('patient_birthday', 'Дата рождения', 'personal', {width: '100px'})}
                 {renderTableHeader('patient_passport', 'Номер паспорта', 'personal', {width: '120px'})}
                 {renderTableHeader('patient_position', 'Должность', 'personal', {width: '100px'})}
-                {renderTableHeader('notes', 'Примечание', 'personal', {width: '120px'})}
+                {renderTableHeader('notes', patientTranslations.tableHeaders.notes(), 'personal', {width: '120px'})}
               </>
             )}
           </tr>
@@ -658,7 +660,7 @@ export function PatientTableDesktop({
             {patients.map((patient, index) => (
               <tr key={`${patient.deal_id}-${patient.patient_full_name}-${index}`} className="hover:bg-gray-50">
                 {renderTableCell(patient, 'patient_full_name', 'basic', patient.patient_full_name)}
-                {renderTableCell(patient, 'patient_chinese_name', 'basic', patient.patient_chinese_name)}
+
                 
                 {/* Basic fields */}
                 {visibleFieldGroups.includes('basic') && (
@@ -733,7 +735,7 @@ export function PatientTableDesktop({
                         onClick={() => handleAddReturnTickets(patient)}
                       >
                         <Plane className="h-4 w-4 mr-1 rotate-45" />
-                        {patient.departure_datetime ? 'Редактировать' : 'Добавить билеты'}
+                                                 {patient.departure_datetime ? patientTranslations.actions.editTickets() : patientTranslations.actions.addTickets()}
                       </Button>
                     </td>
                   </>

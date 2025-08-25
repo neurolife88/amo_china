@@ -18,6 +18,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface ReturnTicketsModalProps {
   open: boolean;
@@ -44,6 +45,8 @@ export function ReturnTicketsModal({
   loading = false,
   cities,
 }: ReturnTicketsModalProps) {
+  const { patients: patientTranslations } = useTranslations();
+  
   const handleSave = async () => {
     if (loading) return;
     await onSave();
@@ -53,20 +56,20 @@ export function ReturnTicketsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Редактировать обратные билеты</DialogTitle>
+          <DialogTitle>{patientTranslations.modals.returnTickets.title()}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {/* Transport Type */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="departure_transport_type" className="text-right">
-              Транспорт
+              {patientTranslations.modals.returnTickets.transportType()}
             </Label>
             <Select
               value={data?.departure_transport_type || ''}
               onValueChange={(value) => onDataChange({ departure_transport_type: value })}
             >
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Выберите транспорт" />
+                <SelectValue placeholder={patientTranslations.placeholders.selectTransport()} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Самолет">Самолет</SelectItem>
@@ -78,14 +81,14 @@ export function ReturnTicketsModal({
           {/* City */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="departure_city" className="text-right">
-              Город
+              {patientTranslations.modals.returnTickets.city()}
             </Label>
             <Select
               value={data?.departure_city || ''}
               onValueChange={(value) => onDataChange({ departure_city: value })}
             >
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Выберите город" />
+                <SelectValue placeholder={patientTranslations.placeholders.selectCity()} />
               </SelectTrigger>
               <SelectContent>
                 {cities.map((city) => (
@@ -99,7 +102,7 @@ export function ReturnTicketsModal({
 
           {/* Date and Time */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Дата и время</Label>
+            <Label className="text-right">{patientTranslations.modals.returnTickets.dateTime()}</Label>
             <div className="col-span-3 flex gap-2">
               <Popover>
                 <PopoverTrigger asChild>
@@ -165,23 +168,23 @@ export function ReturnTicketsModal({
           {/* Flight Number */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="departure_flight_number" className="text-right">
-              Рейс
+              {patientTranslations.modals.returnTickets.flightNumber()}
             </Label>
             <Input
               id="departure_flight_number"
               value={data?.departure_flight_number || ''}
               onChange={(e) => onDataChange({ departure_flight_number: e.target.value })}
               className="col-span-3"
-              placeholder="Номер рейса"
+              placeholder={patientTranslations.modals.returnTickets.flightNumber()}
             />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Отмена
+            {patientTranslations.modals.returnTickets.cancel()}
           </Button>
           <Button onClick={handleSave} disabled={loading}>
-            Сохранить
+            {patientTranslations.modals.returnTickets.save()}
           </Button>
         </DialogFooter>
       </DialogContent>

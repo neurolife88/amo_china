@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import ExpandableText from '../ExpandableText';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface EditableNotesCellProps {
   value: string | null;
@@ -22,6 +23,7 @@ export function EditableNotesCell({
   maxDisplayLength = 10,
   canEdit = true
 }: EditableNotesCellProps) {
+  const { patients: patientTranslations } = useTranslations();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -68,12 +70,12 @@ export function EditableNotesCell({
     if (parts.length > 0) {
       return (
         <>
-          <div>Особые пожелания</div>
+          <div>{patientTranslations.modals.editNotes.title()}</div>
           <div className="text-sm text-gray-500 font-normal">• {parts.join(' / ')}</div>
         </>
       );
     }
-    return 'Особые пожелания';
+    return patientTranslations.modals.editNotes.title();
   };
 
   if (!canEdit) {
@@ -108,7 +110,7 @@ export function EditableNotesCell({
             <Textarea
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              placeholder="Введите примечание о пациенте..."
+              placeholder="Введите особые пожелания о пациенте..."
               className="min-h-[180px] resize-none"
               autoFocus
             />
@@ -120,14 +122,14 @@ export function EditableNotesCell({
               onClick={handleCancel}
               disabled={isLoading}
             >
-              Отмена
+              {patientTranslations.modals.editNotes.cancel()}
             </Button>
             <Button
               onClick={handleSave}
               disabled={isLoading}
               type="button"
             >
-              {isLoading ? 'Сохранение...' : 'Сохранить'}
+              {isLoading ? 'Сохранение...' : patientTranslations.modals.editNotes.save()}
             </Button>
           </DialogFooter>
         </DialogContent>

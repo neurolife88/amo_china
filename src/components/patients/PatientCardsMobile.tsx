@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { EditableNotesCell } from './EditableNotesCell';
 import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface PatientCardsMobileProps {
   patients: PatientData[];
@@ -37,6 +38,7 @@ export function PatientCardsMobile({
   const { toast } = useToast();
   const { cities } = useCities();
   const permissions = usePermissions();
+  const { patients: patientTranslations } = useTranslations();
   const [openCards, setOpenCards] = useState<Set<number>>(new Set());
   const [editingField, setEditingField] = useState<{ dealId: number; field: string } | null>(null);
   const [editValue, setEditValue] = useState<string>('');
@@ -87,14 +89,14 @@ export function PatientCardsMobile({
       setEditingChineseName(null);
       setChineseNameValue('');
       toast({
-        title: "Успешно обновлено",
-        description: "Китайское имя обновлено",
+        title: patientTranslations.toasts.success.updated(),
+        description: patientTranslations.toasts.success.patientDataUpdated(),
       });
     } catch (error) {
       console.error('Error saving Chinese name:', error);
       const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
       toast({
-        title: "Ошибка обновления",
+        title: patientTranslations.toasts.error.updateFailed(),
         description: `Не удалось обновить китайское имя: ${errorMessage}`,
         variant: "destructive",
       });
@@ -151,15 +153,15 @@ export function PatientCardsMobile({
       setEditingField(null);
       setEditValue(''); // Очищаем значение после сохранения
       toast({
-        title: "Успешно обновлено",
-        description: "Данные пациента обновлены",
+        title: patientTranslations.toasts.success.updated(),
+        description: patientTranslations.toasts.success.patientDataUpdated(),
       });
     } catch (error) {
       console.error('Error saving mobile edit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
       toast({
-        title: "Ошибка обновления",
-        description: `Не удалось обновить данные: ${errorMessage}`,
+        title: patientTranslations.toasts.error.updateFailed(),
+        description: `${patientTranslations.toasts.error.failedToUpdate}: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -213,7 +215,7 @@ export function PatientCardsMobile({
                 onValueChange={(value) => setEditValue(value)}
               >
                 <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Выберите город" />
+                  <SelectValue placeholder={patientTranslations.placeholders.selectCity()} />
                 </SelectTrigger>
                 <SelectContent>
                   {cities.map((city) => (
@@ -229,7 +231,7 @@ export function PatientCardsMobile({
                 onValueChange={(value) => setEditValue(value)}
               >
                 <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Выберите транспорт" />
+                  <SelectValue placeholder={patientTranslations.placeholders.selectTransport()} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Самолет">Самолет</SelectItem>
@@ -389,14 +391,14 @@ export function PatientCardsMobile({
       setShowReturnTicketsModal(false);
       setSelectedDealId(null);
       toast({
-        title: "Успешно сохранено",
-        description: "Обратные билеты добавлены",
+        title: patientTranslations.toasts.success.updated(),
+        description: patientTranslations.toasts.success.patientDataUpdated(),
       });
     } catch (error) {
       console.error('Error saving return tickets:', error);
       toast({
-        title: "Ошибка сохранения",
-        description: "Не удалось сохранить обратные билеты",
+        title: patientTranslations.toasts.error.updateFailed(),
+        description: `${patientTranslations.toasts.error.failedToUpdate}: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
         variant: "destructive",
       });
     }
@@ -428,7 +430,7 @@ export function PatientCardsMobile({
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center space-x-2">
                 <User className="h-4 w-4" />
-                <span>{patient.patient_full_name || 'Без имени'}</span>
+                <span>{patient.patient_full_name || patientTranslations.mobileCards.noName()}</span>
               </CardTitle>
               <div className={`text-base text-muted-foreground font-normal group relative flex items-center space-x-1 ${permissions.canEdit('patient_chinese_name', { fieldGroup: 'basic' }) ? 'bg-blue-50/50 border border-blue-200/50 rounded-lg p-2 hover:bg-blue-100/50 transition-colors' : ''}`}>
                 {editingChineseName === patient.deal_id ? (
@@ -477,7 +479,7 @@ export function PatientCardsMobile({
                              {permissions.shouldShowField('clinic_name', 'basic') && (
                  <div className="flex items-center space-x-2">
                    <ClinicLogo clinicName={patient.clinic_name} className="w-8 h-8" />
-                   <span>{patient.clinic_name || 'Клиника не указана'}</span>
+                   <span>{patient.clinic_name || patientTranslations.mobileCards.clinicNotSpecified()}</span>
                  </div>
                )}
             </div>
@@ -489,7 +491,7 @@ export function PatientCardsMobile({
               <>
                 {/* Дата прибытия - отображается всегда */}
                 <div className="text-sm text-muted-foreground">
-                  <span>Дата и время прибытия:</span>
+                  <span>{patientTranslations.mobileCards.arrivalDateTime()}:</span>
                   <div className="font-medium">{formatDate(patient.arrival_datetime)}</div>
                 </div>
                 
@@ -501,19 +503,19 @@ export function PatientCardsMobile({
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded bg-muted/50">
                     <div className="flex items-center space-x-2">
                       <Plane className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium text-sm">Прибытие</span>
+                      <span className="font-medium text-sm">{patientTranslations.mobileCards.arrival()}</span>
                     </div>
                     <ChevronDown className={`h-4 w-4 transition-transform ${openCards.has(patient.deal_id) ? 'rotate-180' : ''}`} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="pt-2 space-y-2 text-sm">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <span className="text-muted-foreground">Страна:</span>
+                        <span className="text-muted-foreground">{patientTranslations.mobileCards.country()}:</span>
                         <div>{patient.deal_country || '-'}</div>
                       </div>
                       {permissions.shouldShowField('clinic_name', 'arrival') && (
                         <div>
-                          <span className="text-muted-foreground">Клиника:</span>
+                          <span className="text-muted-foreground">{patientTranslations.mobileCards.clinic()}:</span>
                           <div className="flex items-center space-x-2">
                             <ClinicLogo clinicName={patient.clinic_name} className="w-8 h-8" />
                             <span>{patient.clinic_name || '-'}</span>
@@ -522,42 +524,42 @@ export function PatientCardsMobile({
                       )}
                       {permissions.shouldShowField('status_name', 'arrival') && (
                         <div>
-                          <span className="text-muted-foreground">Статус сделки:</span>
+                          <span className="text-muted-foreground">{patientTranslations.mobileCards.dealStatus()}:</span>
                           <div>{patient.status_name || '-'}</div>
                         </div>
                       )}
                       <div>
-                        <span className="text-muted-foreground">Транспорт:</span>
+                        <span className="text-muted-foreground">{patientTranslations.mobileCards.transport()}:</span>
                         <div>{patient.arrival_transport_type || '-'}</div>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Код аэропорта:</span>
+                        <span className="text-muted-foreground">{patientTranslations.mobileCards.airportCode()}:</span>
                         <div>{patient.departure_airport_code || '-'}</div>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Город прибытия:</span>
+                        <span className="text-muted-foreground">{patientTranslations.mobileCards.arrivalCity()}:</span>
                         <div>{patient.arrival_city || '-'}</div>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Рейс:</span>
+                        <span className="text-muted-foreground">{patientTranslations.mobileCards.flight()}:</span>
                         <div>{patient.arrival_flight_number || '-'}</div>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Терминал:</span>
+                        <span className="text-muted-foreground">{patientTranslations.mobileCards.terminal()}:</span>
                         <div>{patient.arrival_terminal || '-'}</div>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Количество пассажиров:</span>
+                        <span className="text-muted-foreground">{patientTranslations.mobileCards.passengersCount()}:</span>
                         <div>{patient.passengers_count || '-'}</div>
                       </div>
-                      {renderEditableField(patient, 'apartment_number', 'Квартира', 'arrival')}
+                      {renderEditableField(patient, 'apartment_number', patientTranslations.mobileCards.apartment(), 'arrival')}
                     </div>
                     
                     {/* Примечание внутри выпадающего списка */}
                     <div className={`pt-2 border-t ${permissions.canEdit('notes', { fieldGroup: 'arrival' }) ? 'bg-blue-50/50 border border-blue-200/50 rounded-lg p-2 hover:bg-blue-100/50 transition-colors' : ''}`}>
                       <div className="flex items-center space-x-2">
                         <FileText className="h-4 w-4 text-gray-600" />
-                        <span className="font-medium text-sm">Примечание</span>
+                        <span className="font-medium text-sm">{patientTranslations.mobileCards.notes()}</span>
                       </div>
                       <EditableNotesCell
                         value={patient.notes}
@@ -565,8 +567,8 @@ export function PatientCardsMobile({
                           const updates: Partial<PatientData> = { notes: newValue };
                           await onPatientUpdate(patient.deal_id, updates);
                           toast({
-                            title: "Успешно обновлено",
-                            description: "Примечание обновлено",
+                            title: patientTranslations.toasts.success.updated(),
+                            description: patientTranslations.toasts.success.patientDataUpdated(),
                           });
                         }}
                         patientName={patient.patient_full_name}
@@ -585,13 +587,13 @@ export function PatientCardsMobile({
                <div className="p-2 rounded bg-orange-50 dark:bg-orange-950/20 space-y-2">
                  <div className="flex items-center space-x-2">
                    <Plane className="h-4 w-4 text-orange-600 rotate-45" />
-                   <span className="font-medium text-sm">Обратные билеты</span>
+                   <span className="font-medium text-sm">{patientTranslations.mobileCards.departure()}</span>
                  </div>
                   <div className="grid grid-cols-1 gap-2 text-sm">
-                    {renderEditableField(patient, 'departure_datetime', 'Дата', 'departure')}
-                    {renderEditableField(patient, 'departure_city', 'Город', 'departure')}
-                    {renderEditableField(patient, 'departure_flight_number', 'Рейс', 'departure')}
-                  </div>
+                   {renderEditableField(patient, 'departure_datetime', patientTranslations.mobileCards.date(), 'departure')}
+                   {renderEditableField(patient, 'departure_city', patientTranslations.mobileCards.city(), 'departure')}
+                   {renderEditableField(patient, 'departure_flight_number', patientTranslations.mobileCards.flight(), 'departure')}
+                 </div>
                </div>
              )}
 
@@ -600,26 +602,26 @@ export function PatientCardsMobile({
                <div className="p-2 rounded bg-blue-50 dark:bg-blue-950/20 space-y-2">
                  <div className="flex items-center space-x-2">
                    <User className="h-4 w-4 text-blue-600" />
-                   <span className="font-medium text-sm">Лечение</span>
+                   <span className="font-medium text-sm">{patientTranslations.mobileCards.treatment()}</span>
                  </div>
                  <div className="grid grid-cols-1 gap-2 text-sm">
                    {permissions.shouldShowField('status_name', 'treatment') && (
                      <div>
-                       <span className="text-muted-foreground">Статус: </span>
+                       <span className="text-muted-foreground">{patientTranslations.mobileCards.status()}: </span>
                        <span>{patient.status_name}</span>
                      </div>
                    )}
                    {permissions.shouldShowField('clinic_name', 'treatment') && (
                      <div>
-                       <span className="text-muted-foreground">Клиника: </span>
+                       <span className="text-muted-foreground">{patientTranslations.mobileCards.clinic()}: </span>
                        <span>{patient.clinic_name}</span>
                      </div>
                    )}
                    <div>
-                     <span className="text-muted-foreground">Дата начала: </span>
+                     <span className="text-muted-foreground">{patientTranslations.mobileCards.startDate()}: </span>
                      <span>{formatDate(patient.arrival_datetime)}</span>
                    </div>
-                   {renderEditableField(patient, 'apartment_number', 'Квартира', 'treatment')}
+                   {renderEditableField(patient, 'apartment_number', patientTranslations.mobileCards.apartment(), 'treatment')}
                  </div>
                  
                  {/* Add Return Tickets Button */}
@@ -630,7 +632,7 @@ export function PatientCardsMobile({
                    onClick={() => handleAddReturnTickets(patient.deal_id)}
                  >
                    <Plane className="h-4 w-4 mr-2 rotate-45" />
-                   {patient.departure_datetime ? 'Редактировать билеты' : 'Добавить обратные билеты'}
+                   {patient.departure_datetime ? patientTranslations.actions.editTickets() : patientTranslations.actions.addTickets()}
                  </Button>
                </div>
              )}
@@ -641,43 +643,43 @@ export function PatientCardsMobile({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <FileText className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-sm">Виза</span>
+                    <span className="font-medium text-sm">{patientTranslations.mobileCards.visa()}</span>
                   </div>
-                                  {patient.visa_status ? (
-                  <Badge 
-                    variant={patient.visa_status === 'Active' ? 'default' : 'destructive'}
-                    className="text-xs"
-                  >
-                    {patient.visa_status === 'Active' ? 'Активна' :
-                     patient.visa_status === 'Expiring Soon' ? 'Истекает' : 'Истекла'}
-                  </Badge>
-                ) : (
-                  <span className="text-muted-foreground text-xs">-</span>
-                )}
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Тип:</span> {patient.visa_type || '-'}
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Дней в визе:</span> {patient.visa_days || '-'}
-                </div>
-                {patient.days_until_visa_expires !== null && (
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">До истечения:</span>{' '}
-                    {patient.days_until_visa_expires > 0 
-                      ? `${patient.days_until_visa_expires} дней` 
-                      : patient.days_until_visa_expires === 0 
-                        ? 'Истекает сегодня' 
-                        : `Просрочено на ${Math.abs(patient.days_until_visa_expires)} дней`}
-                  </div>
-                )}
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Истекает дата:</span>{' '}
-                  {patient.last_day_in_china ? 
-                    format(parseISO(patient.last_day_in_china), 'dd.MM.yyyy', { locale: ru }) : 
-                    '-'
-                  }
-                </div>
+                                   {patient.visa_status ? (
+                   <Badge 
+                     variant={patient.visa_status === 'Active' ? 'default' : 'destructive'}
+                     className="text-xs"
+                   >
+                     {patient.visa_status === 'Active' ? 'Активна' :
+                      patient.visa_status === 'Expiring Soon' ? 'Истекает' : 'Истекла'}
+                   </Badge>
+                 ) : (
+                   <span className="text-muted-foreground text-xs">-</span>
+                 )}
+                 </div>
+                 <div className="text-sm">
+                   <span className="text-muted-foreground">{patientTranslations.mobileCards.type()}:</span> {patient.visa_type || '-'}
+                 </div>
+                 <div className="text-sm">
+                   <span className="text-muted-foreground">{patientTranslations.mobileCards.visaDays()}:</span> {patient.visa_days || '-'}
+                 </div>
+                 {patient.days_until_visa_expires !== null && (
+                   <div className="text-sm">
+                     <span className="text-muted-foreground">{patientTranslations.mobileCards.daysUntilExpiry()}:</span>{' '}
+                     {patient.days_until_visa_expires > 0 
+                       ? `${patient.days_until_visa_expires} дней` 
+                       : patient.days_until_visa_expires === 0 
+                         ? patientTranslations.mobileCards.expiresToday() 
+                         : patientTranslations.mobileCards.expiredDaysAgo(Math.abs(patient.days_until_visa_expires))}
+                   </div>
+                 )}
+                 <div className="text-sm">
+                   <span className="text-muted-foreground">{patientTranslations.mobileCards.expiryDate()}:</span>{' '}
+                   {patient.last_day_in_china ? 
+                     format(parseISO(patient.last_day_in_china), 'dd.MM.yyyy', { locale: ru }) : 
+                     '-'
+                   }
+                 </div>
               </div>
             )}
 
@@ -686,17 +688,17 @@ export function PatientCardsMobile({
               <div className="p-2 rounded bg-purple-50 dark:bg-purple-950/20 space-y-2">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-purple-600" />
-                  <span className="font-medium text-sm">Личные данные</span>
+                  <span className="font-medium text-sm">{patientTranslations.mobileCards.personalData()}</span>
                 </div>
                 <div className="space-y-1 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Телефон:</span> {patient.patient_phone || '-'}
+                    <span className="text-muted-foreground">{patientTranslations.mobileCards.phone()}:</span> {patient.patient_phone || '-'}
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Email:</span> {patient.patient_email || '-'}
+                    <span className="text-muted-foreground">{patientTranslations.mobileCards.email()}:</span> {patient.patient_email || '-'}
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Паспорт:</span> {patient.patient_passport || '-'}
+                    <span className="text-muted-foreground">{patientTranslations.mobileCards.passport()}:</span> {patient.patient_passport || '-'}
                   </div>
                 </div>
               </div>
@@ -707,12 +709,12 @@ export function PatientCardsMobile({
               <div className="p-2 rounded bg-blue-50 dark:bg-blue-950/20 space-y-2">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium text-sm">Основная информация</span>
+                  <span className="font-medium text-sm">{patientTranslations.mobileCards.basicInfo()}</span>
                 </div>
                 <div className="grid grid-cols-1 gap-2 text-sm">
                    {permissions.shouldShowField('clinic_name', 'basic') && (
                      <div>
-                       <span className="text-muted-foreground">Клиника:</span>
+                       <span className="text-muted-foreground">{patientTranslations.mobileCards.clinic()}:</span>
                        <div className="flex items-center space-x-2">
                          <ClinicLogo clinicName={patient.clinic_name} className="w-8 h-8" />
                          <span>{patient.clinic_name || '-'}</span>
@@ -721,7 +723,7 @@ export function PatientCardsMobile({
                    )}
                    {permissions.shouldShowField('status_name', 'basic') && (
                      <div>
-                       <span className="text-muted-foreground">Статус:</span>
+                       <span className="text-muted-foreground">{patientTranslations.mobileCards.status()}:</span>
                        <div>{patient.status_name || '-'}</div>
                      </div>
                    )}
@@ -736,7 +738,7 @@ export function PatientCardsMobile({
               <div className={`p-2 rounded space-y-2 ${permissions.canEdit('notes', { fieldGroup: 'basic' }) ? 'bg-blue-50/50 border border-blue-200/50 hover:bg-blue-100/50 transition-colors' : 'bg-gray-50 dark:bg-gray-950/20'}`}>
                 <div className="flex items-center space-x-2">
                   <FileText className="h-4 w-4 text-gray-600" />
-                  <span className="font-medium text-sm">Примечание</span>
+                  <span className="font-medium text-sm">{patientTranslations.mobileCards.notes()}</span>
                 </div>
                 <EditableNotesCell
                   value={patient.notes}
@@ -744,8 +746,8 @@ export function PatientCardsMobile({
                     const updates: Partial<PatientData> = { notes: newValue };
                     await onPatientUpdate(patient.deal_id, updates);
                     toast({
-                      title: "Успешно обновлено",
-                      description: "Примечание обновлено",
+                      title: patientTranslations.toasts.success.updated(),
+                      description: patientTranslations.toasts.success.patientDataUpdated(),
                     });
                   }}
                   patientName={patient.patient_full_name}
@@ -763,20 +765,20 @@ export function PatientCardsMobile({
              <Dialog open={showReturnTicketsModal} onOpenChange={setShowReturnTicketsModal}>
          <DialogContent className="sm:max-w-[425px]">
            <DialogHeader>
-             <DialogTitle>Добавить обратные билеты</DialogTitle>
+             <DialogTitle>{patientTranslations.modals.returnTickets.title()}</DialogTitle>
            </DialogHeader>
           <div className="grid gap-4 py-4">
             {/* Transport Type */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="departure_transport_type" className="text-right">
-                Транспорт
+                {patientTranslations.modals.returnTickets.transportType()}
               </Label>
               <Select
                 value={returnTicketsData.departure_transport_type}
                 onValueChange={(value) => setReturnTicketsData(prev => ({ ...prev, departure_transport_type: value }))}
               >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Выберите транспорт" />
+                  <SelectValue placeholder={patientTranslations.placeholders.selectTransport()} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Самолет">Самолет</SelectItem>
@@ -788,14 +790,14 @@ export function PatientCardsMobile({
             {/* City */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="departure_city" className="text-right">
-                Город
+                {patientTranslations.modals.returnTickets.city()}
               </Label>
               <Select
                 value={returnTicketsData.departure_city}
                 onValueChange={(value) => setReturnTicketsData(prev => ({ ...prev, departure_city: value }))}
               >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Выберите город" />
+                  <SelectValue placeholder={patientTranslations.placeholders.selectCity()} />
                 </SelectTrigger>
                 <SelectContent>
                   {cities.map((city) => (
@@ -809,7 +811,7 @@ export function PatientCardsMobile({
 
             {/* Date and Time */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Дата и время</Label>
+              <Label className="text-right">{patientTranslations.modals.returnTickets.dateTime()}</Label>
               <div className="col-span-3 flex gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -870,23 +872,23 @@ export function PatientCardsMobile({
             {/* Flight Number */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="departure_flight_number" className="text-right">
-                Рейс
+                {patientTranslations.modals.returnTickets.flightNumber()}
               </Label>
               <Input
                 id="departure_flight_number"
                 value={returnTicketsData.departure_flight_number}
                 onChange={(e) => setReturnTicketsData(prev => ({ ...prev, departure_flight_number: e.target.value }))}
                 className="col-span-3"
-                placeholder="Номер рейса"
+                placeholder={patientTranslations.modals.returnTickets.flightNumber()}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCancelReturnTickets}>
-              Отмена
+              {patientTranslations.modals.returnTickets.cancel()}
             </Button>
             <Button onClick={handleSaveReturnTickets}>
-              Сохранить
+              {patientTranslations.modals.returnTickets.save()}
             </Button>
           </DialogFooter>
         </DialogContent>
