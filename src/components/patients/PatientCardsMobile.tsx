@@ -21,6 +21,7 @@ import { EditableNotesCell } from './EditableNotesCell';
 import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTranslations } from '@/hooks/useTranslations';
+import { getSortedPatientsForFieldGroup } from '@/lib/sorting';
 
 interface PatientCardsMobileProps {
   patients: PatientData[];
@@ -415,16 +416,15 @@ export function PatientCardsMobile({
     });
   };
 
+  // Используем правильную сортировку для текущей группы полей
+  const currentFieldGroup = visibleFieldGroups[0];
+  const sortedPatients = currentFieldGroup 
+    ? getSortedPatientsForFieldGroup(patients, currentFieldGroup)
+    : patients;
+
   return (
     <div className="space-y-4">
-      {patients
-        .sort((a, b) => {
-          // Сортировка по дате прибытия - сначала те, которые раньше приезжают
-          const dateA = a.arrival_datetime ? new Date(a.arrival_datetime).getTime() : 0;
-          const dateB = b.arrival_datetime ? new Date(b.arrival_datetime).getTime() : 0;
-          return dateA - dateB;
-        })
-        .map((patient) => (
+      {sortedPatients.map((patient) => (
         <Card key={patient.deal_id} className="overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
