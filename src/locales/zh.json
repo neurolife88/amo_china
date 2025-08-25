@@ -30,15 +30,38 @@
     "logout": "退出"
   },
   "auth": {
-    "login": "登录",
-    "signup": "注册",
-    "email": "邮箱",
-    "password": "密码",
-    "confirmPassword": "确认密码",
+    "login": {
+      "title": "系统登录",
+      "description": "请输入您的凭据以访问患者管理系统",
+      "email": "邮箱",
+      "password": "密码",
+      "submit": "登录",
+      "noAccount": "没有账户？注册",
+      "success": "登录成功",
+      "error": "登录错误",
+      "placeholders": {
+        "email": "your.email@example.com",
+        "password": "您的密码"
+      }
+    },
+    "signup": {
+      "title": "注册",
+      "description": "创建新账户。超级管理员将为协调员分配诊所。",
+      "fullName": "全名",
+      "fullNamePlaceholder": "您的全名",
+      "email": "邮箱",
+      "password": "密码",
+              "submit": "注册",
+        "hasAccount": "已有账户？登录",
+        "success": "注册成功！请检查您的电子邮件以确认账户。",
+        "error": "注册错误",
+      "placeholders": {
+        "email": "your.email@example.com",
+        "password": "最少6个字符"
+      }
+    },
     "forgotPassword": "忘记密码？",
     "resetPassword": "重置密码",
-    "loginSuccess": "登录成功",
-    "loginError": "登录错误",
     "logoutSuccess": "退出成功"
   },
   "patients": {

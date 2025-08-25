@@ -43,15 +43,38 @@ export const useTranslations = () => {
 
     // Авторизация
     auth: {
-      login: () => t('auth.login'),
-      signup: () => t('auth.signup'),
-      email: () => t('auth.email'),
-      password: () => t('auth.password'),
-      confirmPassword: () => t('auth.confirmPassword'),
+      login: {
+        title: () => t('auth.login.title'),
+        description: () => t('auth.login.description'),
+        email: () => t('auth.login.email'),
+        password: () => t('auth.login.password'),
+        submit: () => t('auth.login.submit'),
+        noAccount: () => t('auth.login.noAccount'),
+        success: () => t('auth.login.success'),
+        error: () => t('auth.login.error'),
+        placeholders: {
+          email: () => t('auth.login.placeholders.email'),
+          password: () => t('auth.login.placeholders.password'),
+        },
+      },
+      signup: {
+        title: () => t('auth.signup.title'),
+        description: () => t('auth.signup.description'),
+        fullName: () => t('auth.signup.fullName'),
+        fullNamePlaceholder: () => t('auth.signup.fullNamePlaceholder'),
+        email: () => t('auth.signup.email'),
+        password: () => t('auth.signup.password'),
+        submit: () => t('auth.signup.submit'),
+        hasAccount: () => t('auth.signup.hasAccount'),
+        success: () => t('auth.signup.success'),
+        error: () => t('auth.signup.error'),
+        placeholders: {
+          email: () => t('auth.signup.placeholders.email'),
+          password: () => t('auth.signup.placeholders.password'),
+        },
+      },
       forgotPassword: () => t('auth.forgotPassword'),
       resetPassword: () => t('auth.resetPassword'),
-      loginSuccess: () => t('auth.loginSuccess'),
-      loginError: () => t('auth.loginError'),
       logoutSuccess: () => t('auth.logoutSuccess'),
     },
 

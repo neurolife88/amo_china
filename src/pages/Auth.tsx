@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { SignUpForm } from '@/components/auth/SignUpForm';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from '@/hooks/useTranslations';
 
 export default function Auth() {
   const { user } = useAuth();
+  const { auth } = useTranslations();
   const [isLogin, setIsLogin] = useState(true);
 
   // Redirect if already authenticated
@@ -26,7 +28,7 @@ export default function Auth() {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm"
           >
-            {isLogin ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти'}
+            {isLogin ? auth.login.noAccount() : auth.signup.hasAccount()}
           </Button>
         </div>
       </div>

@@ -30,15 +30,38 @@
     "logout": "Выйти"
   },
   "auth": {
-    "login": "Войти",
-    "signup": "Регистрация",
-    "email": "Email",
-    "password": "Пароль",
-    "confirmPassword": "Подтвердите пароль",
+    "login": {
+      "title": "Вход в систему",
+      "description": "Введите свои учетные данные для доступа к системе управления пациентами",
+      "email": "Email",
+      "password": "Пароль",
+      "submit": "Войти",
+      "noAccount": "Нет аккаунта? Зарегистрироваться",
+      "success": "Вход выполнен успешно",
+      "error": "Ошибка входа",
+      "placeholders": {
+        "email": "your.email@example.com",
+        "password": "Ваш пароль"
+      }
+    },
+    "signup": {
+      "title": "Регистрация",
+      "description": "Создайте новый аккаунт. Клинику координатору назначит супер-администратор.",
+      "fullName": "Полное имя",
+      "fullNamePlaceholder": "Ваше полное имя",
+      "email": "Email",
+      "password": "Пароль",
+      "submit": "Зарегистрироваться",
+      "hasAccount": "Уже есть аккаунт? Войти",
+      "success": "Регистрация выполнена успешно! Проверьте свою электронную почту для подтверждения аккаунта.",
+      "error": "Ошибка регистрации",
+      "placeholders": {
+        "email": "your.email@example.com",
+        "password": "Минимум 6 символов"
+      }
+    },
     "forgotPassword": "Забыли пароль?",
     "resetPassword": "Сбросить пароль",
-    "loginSuccess": "Вход выполнен успешно",
-    "loginError": "Ошибка входа",
     "logoutSuccess": "Выход выполнен успешно"
   },
   "patients": {

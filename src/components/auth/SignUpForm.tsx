@@ -8,7 +8,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslations } from '@/hooks/useTranslations';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 export function SignUpForm() {
+  const { auth } = useTranslations();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -45,7 +48,7 @@ export function SignUpForm() {
       setSuccess(true);
     } catch (err) {
       console.error('SignUp error:', err);
-      setError(err instanceof Error ? err.message : 'Ошибка регистрации');
+      setError(err instanceof Error ? err.message : auth.signup.error());
     } finally {
       setLoading(false);
     }
@@ -58,7 +61,7 @@ export function SignUpForm() {
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              Регистрация успешна! Проверьте свою электронную почту для подтверждения аккаунта.
+              {auth.signup.success()}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -72,9 +75,12 @@ export function SignUpForm() {
         <div className="flex justify-center mb-4">
           <ClinicLogo className="w-32 h-32" />
         </div>
-        <CardTitle>Регистрация</CardTitle>
+        <div className="flex justify-end mb-2">
+          <LanguageSwitcher />
+        </div>
+        <CardTitle>{auth.signup.title()}</CardTitle>
         <CardDescription>
-          Создайте новый аккаунт. Клинику координатору назначит супер-администратор.
+          {auth.signup.description()}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -87,38 +93,38 @@ export function SignUpForm() {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="fullName">Полное имя</Label>
+            <Label htmlFor="fullName">{auth.signup.fullName()}</Label>
             <Input
               id="fullName"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Ваше полное имя"
+              placeholder={auth.signup.fullNamePlaceholder()}
               required
               disabled={loading}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{auth.signup.email()}</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.com"
+              placeholder={auth.signup.placeholders.email()}
               required
               disabled={loading}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password">Пароль</Label>
+            <Label htmlFor="password">{auth.signup.password()}</Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Минимум 6 символов"
+              placeholder={auth.signup.placeholders.password()}
               required
               minLength={6}
               disabled={loading}
@@ -127,7 +133,7 @@ export function SignUpForm() {
           
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Зарегистрироваться
+            {auth.signup.submit()}
           </Button>
         </form>
       </CardContent>

@@ -8,8 +8,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslations } from '@/hooks/useTranslations';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 
 export function LoginForm() {
+  const { auth } = useTranslations();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,7 +39,7 @@ export function LoginForm() {
       console.log('Login successful:', data);
     } catch (err) {
       console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'Ошибка входа');
+      setError(err instanceof Error ? err.message : auth.login.error());
     } finally {
       setLoading(false);
     }
@@ -48,9 +51,12 @@ export function LoginForm() {
         <div className="flex justify-center mb-4">
           <ClinicLogo className="w-32 h-32" />
         </div>
-        <CardTitle>Вход в систему</CardTitle>
+        <div className="flex justify-end mb-2">
+          <LanguageSwitcher />
+        </div>
+        <CardTitle>{auth.login.title()}</CardTitle>
         <CardDescription>
-          Введите свои учетные данные для доступа к системе управления пациентами
+          {auth.login.description()}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -63,26 +69,26 @@ export function LoginForm() {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{auth.login.email()}</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.com"
+              placeholder={auth.login.placeholders.email()}
               required
               disabled={loading}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password">Пароль</Label>
+            <Label htmlFor="password">{auth.login.password()}</Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Ваш пароль"
+              placeholder={auth.login.placeholders.password()}
               required
               disabled={loading}
             />
@@ -90,7 +96,7 @@ export function LoginForm() {
           
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Войти
+            {auth.login.submit()}
           </Button>
         </form>
       </CardContent>

@@ -33,15 +33,38 @@ export interface NavigationTranslations {
 }
 
 export interface AuthTranslations {
-  login: string;
-  signup: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
+  login: {
+    title: string;
+    description: string;
+    email: string;
+    password: string;
+    submit: string;
+    noAccount: string;
+    success: string;
+    error: string;
+    placeholders: {
+      email: string;
+      password: string;
+    };
+  };
+  signup: {
+    title: string;
+    description: string;
+    fullName: string;
+    fullNamePlaceholder: string;
+    email: string;
+    password: string;
+    submit: string;
+    hasAccount: string;
+    success: string;
+    error: string;
+    placeholders: {
+      email: string;
+      password: string;
+    };
+  };
   forgotPassword: string;
   resetPassword: string;
-  loginSuccess: string;
-  loginError: string;
   logoutSuccess: string;
 }
 
