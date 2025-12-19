@@ -1,7 +1,7 @@
 /**
  * Модалка для редактирования обратных билетов
  */
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,10 +15,20 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Calendar } from 'lucide-react';
+import { Calendar, Trash2, Plane, TrainFront } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useTranslations } from '@/hooks/useTranslations';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ReturnTicketsModalProps {
   open: boolean;
@@ -30,7 +40,7 @@ interface ReturnTicketsModalProps {
     departure_flight_number: string;
   };
   onDataChange: (updates: Partial<ReturnTicketsModalProps['data']>) => void;
-  onSave: () => void | Promise<void>;
+  onSave: (data?: ReturnTicketsModalProps['data']) => void | Promise<void>;
   loading?: boolean;
   error?: string;
   cities: Array<{ id: number; city_name: string }>;
@@ -46,13 +56,45 @@ export function ReturnTicketsModal({
   cities,
 }: ReturnTicketsModalProps) {
   const { patients: patientTranslations } = useTranslations();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const handleSave = async () => {
     if (loading) return;
-    await onSave();
+    await onSave(data);
   };
 
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    // Установить все поля в null в локальном состоянии
+    onDataChange({
+      departure_transport_type: null,
+      departure_city: null,
+      departure_datetime: null,
+      departure_flight_number: null
+    });
+
+    // Вызвать onSave для сохранения в БД с null значениями
+    await onSave({
+      departure_transport_type: null,
+      departure_city: null,
+      departure_datetime: null,
+      departure_flight_number: null
+    });
+
+    // Закрыть диалог подтверждения и модальное окно
+    setShowDeleteConfirm(false);
+    onOpenChange(false);
+  };
+
+  // Проверяем, есть ли данные в полях
+  const hasData = data?.departure_transport_type || data?.departure_city || 
+    data?.departure_datetime || data?.departure_flight_number;
+
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -72,8 +114,18 @@ export function ReturnTicketsModal({
                 <SelectValue placeholder={patientTranslations.placeholders.selectTransport()} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Самолет">Самолет</SelectItem>
-                <SelectItem value="Поезд">Поезд</SelectItem>
+                   <SelectItem value="Самолет">
+                     <div className="flex items-center gap-2">
+                       <Plane className="h-4 w-4" />
+                       <span>Самолет</span>
+                     </div>
+                   </SelectItem>
+                   <SelectItem value="Поезд">
+                     <div className="flex items-center gap-2">
+                       <TrainFront className="h-4 w-4" />
+                       <span>Поезд</span>
+                     </div>
+                   </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -180,14 +232,51 @@ export function ReturnTicketsModal({
           </div>
         </div>
         <DialogFooter>
+            <div className="flex justify-between w-full">
+              {/* Кнопка удаления слева (показывать условно) */}
+              {hasData && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={handleDelete}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Удалить билеты
+                </Button>
+              )}
+              
+              {/* Кнопки Отмена/Сохранить справа */}
+              <div className={`flex gap-2 ${!hasData ? 'ml-auto' : ''}`}>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {patientTranslations.modals.returnTickets.cancel()}
           </Button>
           <Button onClick={handleSave} disabled={loading}>
             {patientTranslations.modals.returnTickets.save()}
           </Button>
+              </div>
+            </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+      {/* Диалог подтверждения удаления */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить данные о билетах?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Все данные об обратных билетах будут удалены. Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

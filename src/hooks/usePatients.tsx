@@ -80,7 +80,10 @@ export function usePatients() {
       });
       
       // Transform the data to match PatientData type
-      const transformedData: PatientData[] = filteredData.map((row: any) => ({
+       const transformedData: PatientData[] = filteredData.map((row: any) => {
+         
+         
+         return {
         deal_id: row.deal_id || 0,
         lead_id: row.lead_id,
         deal_name: row.deal_name || '',
@@ -130,7 +133,8 @@ export function usePatients() {
         last_day_in_china: row.last_day_in_china,  // ← NEW: Last day in China
         days_until_visa_expires: row.days_until_visa_expires,
         visa_status: (row.visa_status as 'Active' | 'Expiring Soon' | 'Expired') || null,
-      }));
+       };
+       });
       
       setPatients(transformedData);
     } catch (err) {
@@ -143,7 +147,7 @@ export function usePatients() {
 
   const updatePatient = async (dealId: number, updates: Partial<PatientData>) => {
     try {
-      console.log('Starting update for dealId:', dealId, 'with updates:', updates);
+      
       
       // Разделяем поля по таблицам
       const dealsFields = [
@@ -157,7 +161,7 @@ export function usePatients() {
         'arrival_transport_type', 'passengers_count'
       ];
       const returnTicketsFields = [
-        'departure_city', 'departure_datetime', 'departure_flight_number'
+        'departure_city', 'departure_datetime', 'departure_flight_number', 'departure_transport_type'
       ];
 
       const dealsUpdates: any = {};
@@ -294,7 +298,8 @@ export function usePatients() {
       }
 
       // Обновляем таблицу tickets_from_treatment если есть изменения
-      if (Object.keys(returnTicketsUpdates).length > 0 || updates.departure_transport_type) {
+              if (Object.keys(returnTicketsUpdates).length > 0) {
+        
         try {
           // Используем RPC функцию с правами суперпользователя
           // Передаем только те поля, которые действительно обновляются
@@ -302,9 +307,9 @@ export function usePatients() {
             p_deal_id: dealId
           };
           
-          // Добавляем только те поля, которые есть в updates
-          if (updates.departure_transport_type !== undefined) {
-            rpcParams.p_departure_transport_type = updates.departure_transport_type;
+          // Добавляем только те поля, которые есть в returnTicketsUpdates
+          if (returnTicketsUpdates.departure_transport_type !== undefined) {
+            rpcParams.p_departure_transport_type = returnTicketsUpdates.departure_transport_type;
           }
           if (returnTicketsUpdates.departure_city !== undefined) {
             rpcParams.p_departure_city = returnTicketsUpdates.departure_city;
@@ -315,6 +320,8 @@ export function usePatients() {
           if (returnTicketsUpdates.departure_flight_number !== undefined) {
             rpcParams.p_departure_flight_number = returnTicketsUpdates.departure_flight_number;
           }
+           
+           
           
           const { data, error: returnTicketsError } = await supabase.rpc('update_departure_tickets', rpcParams);
 

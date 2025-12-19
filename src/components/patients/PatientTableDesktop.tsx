@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { format, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Edit2, Check, X, Plane } from 'lucide-react';
+import { Edit2, Check, X, Plane, TrainFront } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCities } from '@/hooks/useCities';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ReturnTicketsModal } from '@/components/common/Modals';
 import { EditableNotesCell } from './EditableNotesCell';
 import { supabase } from '@/integrations/supabase/client';
+import { getTransportIcon } from '@/lib/transportIcons';
 
 interface PatientTableDesktopProps {
   patients: PatientData[];
@@ -375,8 +376,18 @@ export function PatientTableDesktop({
                   <SelectValue placeholder={patientTranslations.placeholders.selectTransport()} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Самолет">Самолет</SelectItem>
-                  <SelectItem value="Поезд">Поезд</SelectItem>
+                  <SelectItem value="Самолет">
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-4 w-4" />
+                      <span>Самолет</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Поезд">
+                    <div className="flex items-center gap-2">
+                      <TrainFront className="h-4 w-4" />
+                      <span>Поезд</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Button
@@ -523,7 +534,7 @@ export function PatientTableDesktop({
         title={canEdit(field, fieldGroup) ? patientTranslations.placeholders.clickToEdit() : ''}
       >
         <div className="flex items-center gap-2">
-          <span>{displayValue}</span>
+          {field === 'departure_transport_type' ? getTransportIcon(value) : <span>{displayValue}</span>}
           {canEdit(field, fieldGroup) && (
             <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           )}
@@ -622,14 +633,17 @@ export function PatientTableDesktop({
     setShowReturnTicketsModal(true);
   };
 
-  const handleSaveReturnTickets = async () => {
+  const handleSaveReturnTickets = async (modalData?: any) => {
     if (!selectedDealId) return;
+    
+    // Используем данные из модального окна, если они переданы, иначе из returnTicketsData
+    const dataToSave = modalData || returnTicketsData;
     
     try {
       // Форматируем departure_datetime в строку для сохранения
       let departureDateTime = null;
-      if (returnTicketsData.departure_datetime) {
-        const date = returnTicketsData.departure_datetime;
+      if (dataToSave.departure_datetime) {
+        const date = dataToSave.departure_datetime;
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -640,10 +654,10 @@ export function PatientTableDesktop({
       }
 
       await onPatientUpdate(selectedDealId, {
-        departure_transport_type: returnTicketsData.departure_transport_type,
-        departure_city: returnTicketsData.departure_city,
+        departure_transport_type: dataToSave.departure_transport_type,
+        departure_city: dataToSave.departure_city,
         departure_datetime: departureDateTime,
-        departure_flight_number: returnTicketsData.departure_flight_number
+        departure_flight_number: dataToSave.departure_flight_number
       });
       
       setShowReturnTicketsModal(false);

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ChevronDown, User, Plane, Calendar, FileText, Edit2, Check, X } from 'lucide-react';
+import { ChevronDown, User, Plane, Calendar, FileText, Edit2, Check, X, Trash2, TrainFront } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useState } from 'react';
@@ -17,11 +17,23 @@ import ExpandableText from '../ExpandableText';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { EditableNotesCell } from './EditableNotesCell';
 import { ClinicLogo } from '@/components/common/ClinicLogo';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTranslations } from '@/hooks/useTranslations';
 import { getSortedPatientsForFieldGroup } from '@/lib/sorting';
+import { getTransportIcon } from '@/lib/transportIcons';
+import { ReturnTicketsModal } from '@/components/common/Modals';
 
 interface PatientCardsMobileProps {
   patients: PatientData[];
@@ -235,8 +247,18 @@ export function PatientCardsMobile({
                   <SelectValue placeholder={patientTranslations.placeholders.selectTransport()} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Самолет">Самолет</SelectItem>
-                  <SelectItem value="Поезд">Поезд</SelectItem>
+                  <SelectItem value="Самолет">
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-4 w-4" />
+                      <span>Самолет</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Поезд">
+                    <div className="flex items-center gap-2">
+                      <TrainFront className="h-4 w-4" />
+                      <span>Поезд</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             ) : field === 'departure_datetime' ? (
@@ -281,7 +303,9 @@ export function PatientCardsMobile({
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <span className="text-muted-foreground">{label}:</span>
-            <div className="font-medium">{displayValue}</div>
+            <div className="font-medium">
+              {field === 'departure_transport_type' ? getTransportIcon(rawValue) : displayValue}
+            </div>
           </div>
           {canEditField && (
             <Button
@@ -364,14 +388,17 @@ export function PatientCardsMobile({
     setShowReturnTicketsModal(true);
   };
 
-  const handleSaveReturnTickets = async () => {
+  const handleSaveReturnTickets = async (modalData?: any) => {
     if (!selectedDealId) return;
+    
+    // Используем данные из модального окна, если они переданы, иначе из returnTicketsData
+    const dataToSave = modalData || returnTicketsData;
     
     try {
       // Сохраняем время как простую строку без создания Date объекта
       let departureDateTime = null;
-      if (returnTicketsData.departure_datetime) {
-        const date = new Date(returnTicketsData.departure_datetime);
+      if (dataToSave.departure_datetime) {
+        const date = new Date(dataToSave.departure_datetime);
         
         // Просто форматируем строку без создания нового Date
         const year = date.getFullYear();
@@ -383,10 +410,10 @@ export function PatientCardsMobile({
       }
 
               await onPatientUpdate(selectedDealId, {
-          departure_transport_type: returnTicketsData.departure_transport_type,
-          departure_city: returnTicketsData.departure_city,
+        departure_transport_type: dataToSave.departure_transport_type,
+        departure_city: dataToSave.departure_city,
         departure_datetime: departureDateTime,
-          departure_flight_number: returnTicketsData.departure_flight_number
+        departure_flight_number: dataToSave.departure_flight_number
         });
       
       setShowReturnTicketsModal(false);
@@ -415,6 +442,12 @@ export function PatientCardsMobile({
       departure_flight_number: ''
     });
   };
+
+
+
+  // Проверяем, есть ли данные в полях
+  const hasData = returnTicketsData.departure_transport_type || returnTicketsData.departure_city || 
+    returnTicketsData.departure_datetime || returnTicketsData.departure_flight_number;
 
   // Используем правильную сортировку для текущей группы полей
   const currentFieldGroup = visibleFieldGroups[0];
@@ -762,137 +795,16 @@ export function PatientCardsMobile({
       ))}
       
       {/* Return Tickets Modal */}
-             <Dialog open={showReturnTicketsModal} onOpenChange={setShowReturnTicketsModal}>
-         <DialogContent className="sm:max-w-[425px]">
-           <DialogHeader>
-             <DialogTitle>{patientTranslations.modals.returnTickets.title()}</DialogTitle>
-           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {/* Transport Type */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="departure_transport_type" className="text-right">
-                {patientTranslations.modals.returnTickets.transportType()}
-              </Label>
-              <Select
-                value={returnTicketsData.departure_transport_type}
-                onValueChange={(value) => setReturnTicketsData(prev => ({ ...prev, departure_transport_type: value }))}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder={patientTranslations.placeholders.selectTransport()} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Самолет">Самолет</SelectItem>
-                  <SelectItem value="Поезд">Поезд</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <ReturnTicketsModal
+        open={showReturnTicketsModal}
+        onOpenChange={setShowReturnTicketsModal}
+        data={returnTicketsData}
+        onDataChange={(updates) => setReturnTicketsData(prev => ({ ...prev, ...updates }))}
+        onSave={handleSaveReturnTickets}
+        cities={cities}
+      />
 
-            {/* City */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="departure_city" className="text-right">
-                {patientTranslations.modals.returnTickets.city()}
-              </Label>
-              <Select
-                value={returnTicketsData.departure_city}
-                onValueChange={(value) => setReturnTicketsData(prev => ({ ...prev, departure_city: value }))}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder={patientTranslations.placeholders.selectCity()} />
-                </SelectTrigger>
-                <SelectContent>
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.city_name}>
-                      {city.city_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            {/* Date and Time */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">{patientTranslations.modals.returnTickets.dateTime()}</Label>
-              <div className="col-span-3 flex gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex-1 justify-start text-left font-normal"
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {returnTicketsData.departure_datetime ? (
-                        format(returnTicketsData.departure_datetime, 'dd.MM.yyyy HH:mm', { locale: ru })
-                      ) : (
-                        <span className="text-muted-foreground">Дата</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <CalendarComponent
-                      mode="single"
-                      selected={returnTicketsData.departure_datetime || undefined}
-                      onSelect={(date) => {
-                        if (!date) {
-                          setReturnTicketsData(prev => ({ ...prev, departure_datetime: null }));
-                          return;
-                        }
-                        setReturnTicketsData(prev => {
-                          const newDateTime = new Date(date);
-                          if (prev.departure_datetime) {
-                            newDateTime.setHours(prev.departure_datetime.getHours());
-                            newDateTime.setMinutes(prev.departure_datetime.getMinutes());
-                          } else {
-                            newDateTime.setHours(12);
-                            newDateTime.setMinutes(0);
-                          }
-                          return { ...prev, departure_datetime: newDateTime };
-                        });
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Input
-                  type="time"
-                  value={returnTicketsData.departure_datetime ? format(returnTicketsData.departure_datetime, 'HH:mm') : '12:00'}
-                  onChange={(e) => {
-                    const [hours, minutes] = e.target.value.split(':').map(Number);
-                    setReturnTicketsData(prev => {
-                      const newDateTime = prev.departure_datetime ? new Date(prev.departure_datetime) : new Date();
-                      newDateTime.setHours(hours);
-                      newDateTime.setMinutes(minutes);
-                      return { ...prev, departure_datetime: newDateTime };
-                    });
-                  }}
-                  className="w-32"
-                />
-              </div>
-            </div>
-
-            {/* Flight Number */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="departure_flight_number" className="text-right">
-                {patientTranslations.modals.returnTickets.flightNumber()}
-              </Label>
-              <Input
-                id="departure_flight_number"
-                value={returnTicketsData.departure_flight_number}
-                onChange={(e) => setReturnTicketsData(prev => ({ ...prev, departure_flight_number: e.target.value }))}
-                className="col-span-3"
-                placeholder={patientTranslations.modals.returnTickets.flightNumber()}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancelReturnTickets}>
-              {patientTranslations.modals.returnTickets.cancel()}
-            </Button>
-            <Button onClick={handleSaveReturnTickets}>
-              {patientTranslations.modals.returnTickets.save()}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
